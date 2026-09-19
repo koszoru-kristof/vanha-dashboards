@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>E-ink dashboard — design studies</title>
+    <style>
+      :root { color-scheme: light; }
+      body {
+        margin: 0; padding: 40px 40px 80px;
+        background: #6f7378;
+        font: 14px/1.5 Inter, -apple-system, "SF Pro Text", sans-serif;
+        color: #16191d;
+      }
+      .page-head { max-width: 800px; margin: 0 auto 34px; color: #f2f4f6; }
+      .page-head h1 { margin: 0 0 6px; font-size: 19px; font-weight: 650; }
+      .page-head p { margin: 0; font-size: 13.5px; color: #d3d8dd; max-width: 70ch; }
+      .card { max-width: 800px; margin: 0 auto 44px; }
+      .card header { margin-bottom: 12px; color: #f2f4f6; }
+      .card h2 {
+        margin: 0; font-size: 13px; font-weight: 700;
+        letter-spacing: .12em; text-transform: uppercase;
+      }
+      .card p { margin: 4px 0 0; font-size: 13px; color: #d3d8dd; max-width: 72ch; }
+      /* a slim bezel so the white panel reads as a device, not as the page */
+      .frame {
+        width: 800px; height: 480px; background: #fff;
+        box-shadow: 0 0 0 10px #22262b, 0 14px 34px rgba(0,0,0,.45);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-head">
+      <h1>E-ink dashboard — design studies</h1>
+      <p>
+        Five layouts for a 7.5&Prime; 800&times;480 panel, driven by the same device
+        registry and mock feed as the 3D model. No grey fills anywhere &mdash; every
+        area is black, white, or a 45&deg; hatch of the two &mdash; so a 1-bit panel
+        shows these as drawn. The only non-pure pixels are glyph and curve
+        antialiasing, which the panel thresholds without losing anything.
+      </p>
+    </div>
+    <div id="designs"></div>
+    <script type="module" src="/src/dashboard/main.js"></script>
+  </body>
+</html>

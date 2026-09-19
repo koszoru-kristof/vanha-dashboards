@@ -1,0 +1,69 @@
+/*
+ * E-ink panel styling.
+ *
+ * Hard constraint: every pixel is pure #000 or #fff, or a 45deg/135deg hatch of
+ * the two. No greys anywhere, so a 1-bit panel renders this exactly as drawn —
+ * nothing is left to the driver's dithering, which is where thin grey text and
+ * soft fills fall apart. Greyscale is the print / forced-colors case, so
+ * texture rather than tone is the secondary channel.
+ *
+ * Sizes assume a 7.5" 800x480 panel read from 1.5-2 m: nothing below 15px,
+ * hairlines at exactly 1px, no sub-pixel geometry to antialias.
+ */
+
+.panel {
+  --ink: #000;
+  --paper: #fff;
+  width: 800px;
+  height: 480px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Inter, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-feature-settings: "ss01";
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  -webkit-font-smoothing: none;
+}
+.panel * { box-sizing: border-box; margin: 0; }
+
+/* the one sanctioned non-solid fill: 45deg hatch, and its 135deg mirror */
+.hatch   { background-image: repeating-linear-gradient(45deg,  #000 0 1px, #fff 1px 7px); }
+.hatch-b { background-image: repeating-linear-gradient(135deg, #000 0 1px, #fff 1px 5px); }
+
+.invert { background: var(--ink); color: var(--paper); }
+
+/* type scale */
+.hero-s  { font-size: 108px; line-height: .84; font-weight: 700; letter-spacing: -.04em; }
+.hero    { font-size: 150px; line-height: .82; font-weight: 700; letter-spacing: -.045em; }
+.hero-xl { font-size: 232px; line-height: .78; font-weight: 700; letter-spacing: -.05em; }
+.big     { font-size: 62px;  line-height: .9;  font-weight: 700; letter-spacing: -.03em; }
+.mid     { font-size: 40px;  line-height: .95; font-weight: 700; letter-spacing: -.02em; }
+.val     { font-size: 30px;  line-height: 1;   font-weight: 700; letter-spacing: -.01em; }
+.body    { font-size: 19px;  line-height: 1.25; font-weight: 500; }
+.small   { font-size: 16px;  line-height: 1.2;  font-weight: 500; }
+.cap {
+  font-size: 15px; font-weight: 700; letter-spacing: .13em;
+  text-transform: uppercase;
+}
+/* Proportional figures on display numbers; tabular only where digits must line
+   up in a column, per the stat-tile contract. */
+.tnum { font-variant-numeric: tabular-nums; }
+
+.deg::after { content: "°"; }
+
+.rule      { background: var(--ink); height: 1px; width: 100%; }
+.rule-v    { background: var(--ink); width: 1px; }
+.rule-thick{ background: var(--ink); height: 3px; width: 100%; }
+
+.row  { display: flex; align-items: center; }
+.col  { display: flex; flex-direction: column; }
+.grow { flex: 1; min-width: 0; }
+
+/* dot leaders for the ledger layout */
+.leader {
+  flex: 1;
+  border-bottom: 1px dotted var(--ink);
+  margin: 0 10px 7px;
+  min-width: 12px;
+}

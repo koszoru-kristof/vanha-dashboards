@@ -1,0 +1,19 @@
+{
+  "name": "smarthome-flat",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Interactive 3D model of Espoo flat, used as a sandbox for smart-home experiments",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "floorplan": "python3 tools/derive_floorplan.py"
+  },
+  "dependencies": {
+    "three": "^0.186.0"
+  },
+  "devDependencies": {
+    "vite": "^8.3.0"
+  }
+}

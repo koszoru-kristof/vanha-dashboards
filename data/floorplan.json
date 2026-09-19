@@ -1,0 +1,811 @@
+{
+  "meta": {
+    "title": "2-room flat, Espoo",
+    "description": "2 rooms + kitchenette + sauna, 45.5 m2, 3rd floor of 3, built 1997",
+    "source": "input/esite_1393807_A4_versio_2_1e6104372d85431e85e19d29455bb65a.pdf, page 5 (floorplan)",
+    "sourceNote": "The plan is printed with an 'indicative, not to scale' disclaimer. Geometry traced from the embedded 800x600 raster and scaled to the stated 45.5 m2.",
+    "generatedBy": "tools/derive_floorplan.py"
+  },
+  "scale": {
+    "metresPerSourcePixel": 0.022422,
+    "sourceImage": [
+      800,
+      600
+    ],
+    "originSourcePixel": [
+      255,
+      160
+    ]
+  },
+  "orientation": {
+    "north": [
+      0,
+      0,
+      1
+    ],
+    "south": [
+      0,
+      0,
+      -1
+    ],
+    "east": [
+      -1,
+      0,
+      0
+    ],
+    "west": [
+      1,
+      0,
+      0
+    ],
+    "note": "Plan drawn south-up; windows and balcony face south."
+  },
+  "dims": {
+    "ceilingHeight": 2.5,
+    "interiorWidth": 6.4575,
+    "interiorDepth": 7.0853,
+    "livingAreaM2": 45.5
+  },
+  "walls": [
+    {
+      "id": "ext_south",
+      "kind": "exterior",
+      "axis": "x",
+      "x0": -0.3363,
+      "z0": -0.3363,
+      "x1": 6.8162,
+      "z1": 0.0,
+      "height": 2.5,
+      "thickness": 0.3363,
+      "openings": [
+        {
+          "id": "balcony_door",
+          "type": "door",
+          "from": 0.7848,
+          "to": 1.5023,
+          "sill": 0.0,
+          "head": 2.1,
+          "width": 0.7175,
+          "hinge": "from",
+          "swing": 1
+        },
+        {
+          "id": "living_window",
+          "type": "window",
+          "from": 1.5471,
+          "to": 3.4081,
+          "sill": 0.8,
+          "head": 2.2,
+          "width": 1.861,
+          "hinge": null,
+          "swing": 0
+        },
+        {
+          "id": "bedroom_window",
+          "type": "window",
+          "from": 4.2602,
+          "to": 5.9866,
+          "sill": 0.8,
+          "head": 2.2,
+          "width": 1.7265,
+          "hinge": null,
+          "swing": 0
+        }
+      ]
+    },
+    {
+      "id": "ext_north",
+      "kind": "exterior",
+      "axis": "x",
+      "x0": -0.2018,
+      "z0": 7.0853,
+      "x1": 6.6817,
+      "z1": 7.332,
+      "height": 2.5,
+      "thickness": 0.2466,
+      "openings": [
+        {
+          "id": "front_door",
+          "type": "door",
+          "from": 0.7623,
+          "to": 1.6144,
+          "sill": 0.0,
+          "head": 2.05,
+          "width": 0.852,
+          "hinge": "from",
+          "swing": 1
+        }
+      ]
+    },
+    {
+      "id": "ext_east_upper",
+      "kind": "exterior",
+      "axis": "z",
+      "x0": -0.3363,
+      "z0": -0.3363,
+      "x1": 0.0,
+      "z1": 2.6234,
+      "height": 2.5,
+      "thickness": 0.3363,
+      "openings": []
+    },
+    {
+      "id": "ext_east_lower",
+      "kind": "exterior",
+      "axis": "z",
+      "x0": -0.2018,
+      "z0": 2.6234,
+      "x1": 0.0,
+      "z1": 7.332,
+      "height": 2.5,
+      "thickness": 0.2018,
+      "openings": []
+    },
+    {
+      "id": "ext_west_upper",
+      "kind": "exterior",
+      "axis": "z",
+      "x0": 6.4575,
+      "z0": -0.3363,
+      "x1": 6.8162,
+      "z1": 2.6234,
+      "height": 2.5,
+      "thickness": 0.3587,
+      "openings": []
+    },
+    {
+      "id": "ext_west_mid",
+      "kind": "exterior",
+      "axis": "z",
+      "x0": 6.4575,
+      "z0": 2.6234,
+      "x1": 6.6817,
+      "z1": 5.3812,
+      "height": 2.5,
+      "thickness": 0.2242,
+      "openings": []
+    },
+    {
+      "id": "ext_west_lower",
+      "kind": "exterior",
+      "axis": "z",
+      "x0": 6.3005,
+      "z0": 5.3812,
+      "x1": 6.6817,
+      "z1": 7.1077,
+      "height": 2.5,
+      "thickness": 0.3812,
+      "openings": []
+    },
+    {
+      "id": "living_bedroom",
+      "kind": "interior",
+      "axis": "z",
+      "x0": 3.6323,
+      "z0": 0.0,
+      "x1": 3.7445,
+      "z1": 3.3184,
+      "height": 2.5,
+      "thickness": 0.1121,
+      "openings": [
+        {
+          "id": "bedroom_door",
+          "type": "door",
+          "from": 2.3991,
+          "to": 3.1166,
+          "sill": 0.0,
+          "head": 2.05,
+          "width": 0.7175,
+          "hinge": "to",
+          "swing": -1
+        }
+      ]
+    },
+    {
+      "id": "bedroom_south",
+      "kind": "interior",
+      "axis": "x",
+      "x0": 3.6099,
+      "z0": 3.2063,
+      "x1": 6.4575,
+      "z1": 3.3184,
+      "height": 2.5,
+      "thickness": 0.1121,
+      "openings": [
+        {
+          "id": "wardrobe_door",
+          "type": "door",
+          "from": 5.1346,
+          "to": 5.7624,
+          "sill": 0.0,
+          "head": 2.05,
+          "width": 0.6278,
+          "hinge": "to",
+          "swing": -1
+        }
+      ]
+    },
+    {
+      "id": "kitchen_pier",
+      "kind": "interior",
+      "axis": "x",
+      "x0": 4.3498,
+      "z0": 3.3184,
+      "x1": 5.0449,
+      "z1": 3.722,
+      "height": 2.5,
+      "thickness": 0.4036,
+      "openings": []
+    },
+    {
+      "id": "wardrobe_kitchen",
+      "kind": "interior",
+      "axis": "z",
+      "x0": 4.9328,
+      "z0": 3.722,
+      "x1": 5.0449,
+      "z1": 5.2916,
+      "height": 2.5,
+      "thickness": 0.1121,
+      "openings": []
+    },
+    {
+      "id": "hall_wet",
+      "kind": "interior",
+      "axis": "z",
+      "x0": 1.8386,
+      "z0": 4.6189,
+      "x1": 1.9507,
+      "z1": 7.332,
+      "height": 2.5,
+      "thickness": 0.1121,
+      "openings": [
+        {
+          "id": "bathroom_door",
+          "type": "door",
+          "from": 5.4485,
+          "to": 6.166,
+          "sill": 0.0,
+          "head": 2.05,
+          "width": 0.7175,
+          "hinge": "from",
+          "swing": -1
+        }
+      ]
+    },
+    {
+      "id": "bathroom_south",
+      "kind": "interior",
+      "axis": "x",
+      "x0": 1.8386,
+      "z0": 5.2916,
+      "x1": 6.6817,
+      "z1": 5.3812,
+      "height": 2.5,
+      "thickness": 0.0897,
+      "openings": []
+    },
+    {
+      "id": "bathroom_sauna",
+      "kind": "interior",
+      "axis": "z",
+      "x0": 5.0225,
+      "z0": 5.3812,
+      "x1": 5.1795,
+      "z1": 6.9956,
+      "height": 2.5,
+      "thickness": 0.157,
+      "openings": [
+        {
+          "id": "sauna_door",
+          "type": "door",
+          "from": 5.3812,
+          "to": 6.0315,
+          "sill": 0.0,
+          "head": 1.9,
+          "width": 0.6502,
+          "hinge": "to",
+          "swing": -1
+        }
+      ]
+    }
+  ],
+  "rooms": [
+    {
+      "id": "living",
+      "name": "Living room",
+      "floor": "laminate",
+      "polygon": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          3.6323,
+          0.0
+        ],
+        [
+          3.6323,
+          3.3633
+        ],
+        [
+          1.9507,
+          3.3633
+        ],
+        [
+          1.9507,
+          4.6189
+        ],
+        [
+          0.0,
+          4.6189
+        ]
+      ],
+      "areaM2": 14.67
+    },
+    {
+      "id": "kitchen",
+      "name": "Kitchen",
+      "floor": "laminate",
+      "polygon": [
+        [
+          1.9507,
+          3.3633
+        ],
+        [
+          4.3498,
+          3.3633
+        ],
+        [
+          4.3498,
+          3.722
+        ],
+        [
+          4.9328,
+          3.722
+        ],
+        [
+          4.9328,
+          5.2916
+        ],
+        [
+          1.9507,
+          5.2916
+        ]
+      ],
+      "areaM2": 5.54
+    },
+    {
+      "id": "hall",
+      "name": "Hall",
+      "floor": "laminate",
+      "polygon": [
+        [
+          0.0,
+          4.6189
+        ],
+        [
+          1.8386,
+          4.6189
+        ],
+        [
+          1.8386,
+          7.0853
+        ],
+        [
+          0.0,
+          7.0853
+        ]
+      ],
+      "areaM2": 4.53
+    },
+    {
+      "id": "bedroom",
+      "name": "Bedroom",
+      "floor": "laminate",
+      "polygon": [
+        [
+          3.7445,
+          0.0
+        ],
+        [
+          6.4575,
+          0.0
+        ],
+        [
+          6.4575,
+          3.2063
+        ],
+        [
+          3.7445,
+          3.2063
+        ]
+      ],
+      "areaM2": 8.7
+    },
+    {
+      "id": "wardrobe",
+      "name": "Walk-in wardrobe",
+      "floor": "laminate",
+      "polygon": [
+        [
+          5.0449,
+          3.3184
+        ],
+        [
+          6.4575,
+          3.3184
+        ],
+        [
+          6.4575,
+          5.2916
+        ],
+        [
+          5.0449,
+          5.2916
+        ]
+      ],
+      "areaM2": 2.79
+    },
+    {
+      "id": "bathroom",
+      "name": "Bathroom",
+      "floor": "tile",
+      "polygon": [
+        [
+          1.9507,
+          5.3812
+        ],
+        [
+          5.0225,
+          5.3812
+        ],
+        [
+          5.0225,
+          7.0853
+        ],
+        [
+          1.9507,
+          7.0853
+        ]
+      ],
+      "areaM2": 5.23
+    },
+    {
+      "id": "sauna",
+      "name": "Sauna",
+      "floor": "tile",
+      "polygon": [
+        [
+          5.1795,
+          5.3812
+        ],
+        [
+          6.3005,
+          5.3812
+        ],
+        [
+          6.3005,
+          6.9956
+        ],
+        [
+          5.1795,
+          6.9956
+        ]
+      ],
+      "areaM2": 1.81
+    },
+    {
+      "id": "balcony",
+      "name": "Glazed balcony",
+      "floor": "concrete",
+      "polygon": [
+        [
+          0.6278,
+          -3.1391
+        ],
+        [
+          3.5202,
+          -3.1391
+        ],
+        [
+          3.5202,
+          -0.3363
+        ],
+        [
+          0.6278,
+          -0.3363
+        ]
+      ],
+      "areaM2": 8.11
+    }
+  ],
+  "fixtures": [
+    {
+      "id": "k_peninsula",
+      "room": "kitchen",
+      "kind": "counter",
+      "label": "Dining / work surface",
+      "x0": 1.8386,
+      "z0": 3.3633,
+      "x1": 3.6996,
+      "z1": 4.0808,
+      "y0": 0.0,
+      "y1": 0.9
+    },
+    {
+      "id": "k_fridge",
+      "room": "kitchen",
+      "kind": "appliance",
+      "label": "Fridge / freezer",
+      "x0": 1.9507,
+      "z0": 4.6637,
+      "x1": 2.5785,
+      "z1": 5.2467,
+      "y0": 0.0,
+      "y1": 1.85
+    },
+    {
+      "id": "k_base",
+      "room": "kitchen",
+      "kind": "cabinet",
+      "label": "Base cabinets",
+      "x0": 2.5785,
+      "z0": 4.6637,
+      "x1": 4.9104,
+      "z1": 5.2467,
+      "y0": 0.0,
+      "y1": 0.86
+    },
+    {
+      "id": "k_counter",
+      "room": "kitchen",
+      "kind": "counter",
+      "label": "Worktop",
+      "x0": 2.5785,
+      "z0": 4.6189,
+      "x1": 4.9104,
+      "z1": 5.2467,
+      "y0": 0.86,
+      "y1": 0.92
+    },
+    {
+      "id": "k_dishwasher",
+      "room": "kitchen",
+      "kind": "appliance",
+      "label": "Dishwasher",
+      "x0": 2.6234,
+      "z0": 4.5965,
+      "x1": 3.1166,
+      "z1": 4.6637,
+      "y0": 0.06,
+      "y1": 0.84
+    },
+    {
+      "id": "k_hob",
+      "room": "kitchen",
+      "kind": "appliance",
+      "label": "Ceramic hob",
+      "x0": 3.1615,
+      "z0": 4.7086,
+      "x1": 3.8117,
+      "z1": 5.2019,
+      "y0": 0.92,
+      "y1": 0.95
+    },
+    {
+      "id": "k_sink",
+      "room": "kitchen",
+      "kind": "fixture",
+      "label": "Sink",
+      "x0": 3.879,
+      "z0": 4.7086,
+      "x1": 4.3723,
+      "z1": 5.2019,
+      "y0": 0.92,
+      "y1": 0.95
+    },
+    {
+      "id": "k_tall",
+      "room": "kitchen",
+      "kind": "cabinet",
+      "label": "Tall cabinet",
+      "x0": 4.4171,
+      "z0": 3.9462,
+      "x1": 4.9104,
+      "z1": 4.5741,
+      "y0": 0.0,
+      "y1": 2.1
+    },
+    {
+      "id": "k_wall_left",
+      "room": "kitchen",
+      "kind": "cabinet",
+      "label": "Wall cabinets",
+      "x0": 2.5785,
+      "z0": 4.6637,
+      "x1": 3.1615,
+      "z1": 5.0225,
+      "y0": 1.45,
+      "y1": 2.15
+    },
+    {
+      "id": "k_wall_right",
+      "room": "kitchen",
+      "kind": "cabinet",
+      "label": "Wall cabinets",
+      "x0": 3.8117,
+      "z0": 4.6637,
+      "x1": 4.9104,
+      "z1": 5.0225,
+      "y0": 1.45,
+      "y1": 2.15
+    },
+    {
+      "id": "k_hood",
+      "room": "kitchen",
+      "kind": "appliance",
+      "label": "Extractor hood",
+      "x0": 3.1615,
+      "z0": 4.6637,
+      "x1": 3.8117,
+      "z1": 5.0673,
+      "y0": 1.55,
+      "y1": 1.8
+    },
+    {
+      "id": "b_washer",
+      "room": "bathroom",
+      "kind": "appliance",
+      "label": "Washing machine",
+      "x0": 1.9507,
+      "z0": 6.4799,
+      "x1": 2.4888,
+      "z1": 7.0853,
+      "y0": 0.0,
+      "y1": 0.85
+    },
+    {
+      "id": "b_vanity",
+      "room": "bathroom",
+      "kind": "cabinet",
+      "label": "Vanity unit",
+      "x0": 2.6234,
+      "z0": 6.6369,
+      "x1": 3.4081,
+      "z1": 7.0853,
+      "y0": 0.0,
+      "y1": 0.82
+    },
+    {
+      "id": "b_basin",
+      "room": "bathroom",
+      "kind": "fixture",
+      "label": "Washbasin",
+      "x0": 2.7355,
+      "z0": 6.2557,
+      "x1": 3.296,
+      "z1": 6.6817,
+      "y0": 0.82,
+      "y1": 0.92
+    },
+    {
+      "id": "b_wc",
+      "room": "bathroom",
+      "kind": "fixture",
+      "label": "Toilet",
+      "x0": 3.5875,
+      "z0": 6.4351,
+      "x1": 4.0135,
+      "z1": 7.0853,
+      "y0": 0.0,
+      "y1": 0.78
+    },
+    {
+      "id": "b_shower",
+      "room": "bathroom",
+      "kind": "fixture",
+      "label": "Rain shower",
+      "x0": 4.1032,
+      "z0": 6.166,
+      "x1": 4.9777,
+      "z1": 7.0853,
+      "y0": 0.0,
+      "y1": 0.02
+    },
+    {
+      "id": "b_screen",
+      "room": "bathroom",
+      "kind": "glass",
+      "label": "Shower screen",
+      "x0": 4.0584,
+      "z0": 6.166,
+      "x1": 4.1032,
+      "z1": 7.0853,
+      "y0": 0.0,
+      "y1": 2.0
+    },
+    {
+      "id": "s_heater",
+      "room": "sauna",
+      "kind": "appliance",
+      "label": "Electric sauna heater",
+      "x0": 5.9194,
+      "z0": 5.4037,
+      "x1": 6.3005,
+      "z1": 5.8073,
+      "y0": 0.0,
+      "y1": 0.85
+    },
+    {
+      "id": "s_bench_low",
+      "room": "sauna",
+      "kind": "bench",
+      "label": "Lower bench",
+      "x0": 5.2019,
+      "z0": 6.5472,
+      "x1": 6.3005,
+      "z1": 6.9956,
+      "y0": 0.0,
+      "y1": 0.5
+    },
+    {
+      "id": "s_bench_high",
+      "room": "sauna",
+      "kind": "bench",
+      "label": "Upper bench",
+      "x0": 5.2019,
+      "z0": 6.0987,
+      "x1": 6.3005,
+      "z1": 6.5472,
+      "y0": 0.0,
+      "y1": 0.9
+    },
+    {
+      "id": "s_step",
+      "room": "sauna",
+      "kind": "bench",
+      "label": "Step",
+      "x0": 5.2467,
+      "z0": 5.74,
+      "x1": 5.7624,
+      "z1": 6.0539,
+      "y0": 0.0,
+      "y1": 0.45
+    },
+    {
+      "id": "vh_shelves",
+      "room": "wardrobe",
+      "kind": "cabinet",
+      "label": "Shelving",
+      "x0": 5.0449,
+      "z0": 4.6637,
+      "x1": 6.4575,
+      "z1": 5.2916,
+      "y0": 0.0,
+      "y1": 2.1
+    },
+    {
+      "id": "vh_rail",
+      "room": "wardrobe",
+      "kind": "cabinet",
+      "label": "Hanging rail",
+      "x0": 6.0091,
+      "z0": 3.3184,
+      "x1": 6.4575,
+      "z1": 4.6637,
+      "y0": 0.0,
+      "y1": 2.1
+    }
+  ],
+  "balcony": {
+    "x0": 0.4933,
+    "z0": -3.2736,
+    "x1": 3.6548,
+    "z1": -0.3363,
+    "parapetThickness": 0.1345,
+    "parapetHeight": 1.0,
+    "glassTop": 2.2,
+    "openSide": "north"
+  }
+}
