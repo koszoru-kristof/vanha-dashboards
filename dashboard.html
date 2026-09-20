@@ -12,12 +12,24 @@
         font: 14px/1.5 Inter, -apple-system, "SF Pro Text", sans-serif;
         color: #16191d;
       }
-      .page-head { max-width: 800px; margin: 0 auto 34px; color: #f2f4f6; }
+      .page-head { max-width: 800px; margin: 0 auto 26px; color: #f2f4f6; }
       .page-head h1 { margin: 0 0 6px; font-size: 19px; font-weight: 650; }
       .page-head p { margin: 0; font-size: 13.5px; color: #d3d8dd; max-width: 70ch; }
+      nav { max-width: 800px; margin: 0 auto 34px; display: flex; gap: 4px;
+            border-bottom: 1px solid #8a8f95; }
+      nav a {
+        color: #d3d8dd; text-decoration: none; font-size: 13px; font-weight: 600;
+        padding: 8px 14px; border-bottom: 2px solid transparent; margin-bottom: -1px;
+      }
+      nav a:hover { color: #fff; }
+      nav a.active { color: #fff; border-bottom-color: #fff; }
+      .group-head { max-width: 800px; margin: 0 auto 26px; color: #f2f4f6; }
+      .group-head h2 { margin: 0 0 4px; font-size: 16px; font-weight: 650; }
+      .group-head p { margin: 0; font-size: 13.5px; color: #d3d8dd; max-width: 72ch; }
+      .group + .group { margin-top: 30px; padding-top: 30px; border-top: 1px solid #8a8f95; }
       .card { max-width: 800px; margin: 0 auto 44px; }
       .card header { margin-bottom: 12px; color: #f2f4f6; }
-      .card h2 {
+      .card h3 {
         margin: 0; font-size: 13px; font-weight: 700;
         letter-spacing: .12em; text-transform: uppercase;
       }
@@ -27,19 +39,32 @@
         width: 800px; height: 480px; background: #fff;
         box-shadow: 0 0 0 10px #22262b, 0 14px 34px rgba(0,0,0,.45);
       }
+      /* ?only=<id>: just the panel, at 1:1, for capture and for the device */
+      body.only { padding: 0; background: #fff; }
+      body.only .page-head, body.only nav { display: none; }
+      body.only .group { margin: 0; padding: 0; border: 0; }
+      .group:empty { display: none; }
+      body.only .card { margin: 0; }
+      body.only .frame { box-shadow: none; }
     </style>
   </head>
   <body>
     <div class="page-head">
       <h1>E-ink dashboard — design studies</h1>
       <p>
-        Five layouts for a 7.5&Prime; 800&times;480 panel, driven by the same device
-        registry and mock feed as the 3D model. No grey fills anywhere &mdash; every
-        area is black, white, or a 45&deg; hatch of the two &mdash; so a 1-bit panel
-        shows these as drawn. The only non-pure pixels are glyph and curve
-        antialiasing, which the panel thresholds without losing anything.
+        Layouts for a 7.5&Prime; 800&times;480 panel, driven by the same device
+        registry and mock feed as the 3D model, plus the live Finnish spot price.
+        No grey fills anywhere &mdash; every area is black, white, or a 45&deg; hatch
+        of the two &mdash; so a 1-bit panel shows these as drawn. The only non-pure
+        pixels are glyph and curve antialiasing, which the panel thresholds without
+        losing anything.
       </p>
     </div>
+    <nav>
+      <a href="#" data-tab="all">All</a>
+      <a href="#climate" data-tab="climate">Climate</a>
+      <a href="#electricity" data-tab="electricity">Electricity</a>
+    </nav>
     <div id="designs"></div>
     <script type="module" src="/src/dashboard/main.js"></script>
   </body>

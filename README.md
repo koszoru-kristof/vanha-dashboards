@@ -115,6 +115,9 @@ src/state.js               transport-agnostic state bus
 src/automations.js         example rules (motion lighting, humidity boost, leak alarm)
 src/adapters/mock.js       simulated sensors, so it does something out of the box
 src/adapters/mqtt.js       the seam for real state — not wired up yet
+src/adapters/porssisahko.js  Nord Pool FI spot prices (live, with synthetic fallback)
+src/prices.js              price store, bands, sauna session cost, the verdict
+src/dashboard/             e-ink studies: climate, floorplan and electricity designs
 src/ui.js                  side panel
 src/main.js                scene, camera, picking, state -> scene sync
 ```
@@ -163,7 +166,7 @@ For Home Assistant instead, the same file is where a WebSocket-API client and an
 
 ## E-ink dashboard studies
 
-`dashboard.html` (`npm run dev`, then `/dashboard.html`) renders five candidate
+`dashboard.html` (`npm run dev`, then `/dashboard.html`) renders ten candidate
 layouts for a 7.5&Prime; 800&times;480 e-ink panel, driven by the same registry and
 mock feed as the 3D view — they are renderings of live device state, not mockups
 with invented numbers.
@@ -175,6 +178,7 @@ with invented numbers.
 | **Split** | Outdoor block beside per-room comfort meters (18–24 °C band) |
 | **Grid** | Six equal stat tiles with sparklines; outdoor inverted |
 | **Bare** | One number, plus a thin strip of context |
+| **Dots** | Dot plot: every room on one shared 16–28 °C track, comfort band heavier; balcony and outdoor below on a −20…30 scale |
 | **Plan** | The floorplan itself, each room carrying its own reading |
 | **Thermal** | Rooms filled with an ordered hatch — denser is warmer |
 | **Drift** | Deviation from a 21 °C setpoint; hatch direction carries the sign |
@@ -227,6 +231,79 @@ only out-of-band rooms are hatched — so it is much cheaper to display, and it
 answers "does anything need attention?" directly. Absolute thermal mapping of a
 well-heated flat is inherently low-contrast: every indoor room sits within about
 3 °C, so most of the plan lands in adjacent bins.
+
+### What they look like
+
+Exported from the browser at 1:1, live mock climate and live spot prices
+(Sunday 20 September 2026, evening — a near-zero price day with a 17 c spike
+the next morning).
+
+| | |
+|---|---|
+| ![Lead](docs/dash-lead.png) | ![Dots](docs/dash-dots.png) |
+| Lead | Dots |
+| ![Plan](docs/dash-plan.png) | ![Drift](docs/dash-drift.png) |
+| Plan | Drift |
+| ![Verdict](docs/dash-verdict.png) | ![Hours](docs/dash-hours.png) |
+| Verdict | Hours |
+| ![Ribbon](docs/dash-ribbon.png) | ![Lead + price](docs/dash-lead-price.png) |
+| Ribbon | Lead + price |
+
+## Electricity price studies
+
+The second tab of `dashboard.html` (`#electricity`) is about one question: **is
+now a good time to heat the sauna?** Finland is a single Nord Pool bidding zone,
+and the day-ahead price swings by an order of magnitude within a day, so the
+answer is mostly "when", not "whether".
+
+| Design | Character |
+|---|---|
+| **Verdict** | The answer in words as the hero; three stat tiles behind it. No plot |
+| **Hours** | Today and tomorrow as hourly columns on one scale; the sauna window framed and underlined |
+| **Ribbon** | One cell per hour, classed cheap / normal / dear. A timetable, not a chart; least ink |
+| **Session** | The price of *one sauna* in euros, and what waiting would save |
+| **Lead + price** | The Lead climate layout with today's ribbon and the verdict along the bottom |
+| **Plan + price** | The Plan layout with the right column split between outdoor and electricity |
+
+Where the numbers come from:
+
+- `src/adapters/porssisahko.js` fetches the FI day-ahead series from
+  [api.porssisahko.net](https://porssisahko.net) — c/kWh **incl. VAT 25.5 %**,
+  48 h rolling, hourly (the 15-minute v2 series is folded to hourly means).
+  The API sends no CORS header, so `vite.config.js` proxies `/api/porssisahko/*`
+  to it in dev; whatever hosts the panel does the same. If the fetch fails the
+  adapter substitutes a shaped synthetic day and the footers say so.
+- Tomorrow's prices are published around 14:00 Finnish time. Before that, the
+  designs say "published around 14:00" rather than drawing nothing.
+- `src/prices.js` holds the store and the decision model. Constants worth
+  tuning: `BANDS` (cheap ≤ 5 c, dear > 15 c, absolute so "cheap" means the same
+  every day), `FIXED_C_PER_KWH` (transfer + electricity tax, 7.5 c — replace
+  with your bill), and `SAUNA` (1.5 h at 70 % duty on the 6 kW heater registered
+  as `heater.sauna`, ≈ 6.3 kWh, evaluated over a 2 h window, start hours 07–22).
+
+The verdict compares the next two hours with the cheapest remaining window today
+and the cheapest window tomorrow. A window only wins if it is *clearly* cheaper —
+30 % less **and** at least 1 c — because on a windy Sunday every hour is under a
+cent and the right answer is simply "now". States: `now`, `wait` (cheaper later
+today), `tomorrow`, `later` (nothing cheap left today), `done` (past sauna hours).
+
+Design notes specific to prices:
+
+- **This data *is* a chart.** Unlike temperatures, a spot price is a schedule
+  you read the shape of, so Hours and Ribbon plot it — but every design still
+  prints the verdict in words and the price as a number.
+- **Selective labels.** Hours labels only now, the window mean, and each day's
+  max and min, skipping any that would collide. 48 numbers along the top would
+  be unreadable.
+- **The sauna window is a 2 px frame plus a bar under the axis**, not a fill. A
+  solid black band with white columns cut out was tried first: striking, but on
+  a cheap day it dwarfed every column and read as the peak. A hatch behind 13 px
+  columns turns to mush at 1-bit.
+- **Ribbon cells are ordinal, not magnitude.** Three absolute classes need no
+  scale, which is what makes the strip short enough to sit under a climate
+  layout (Lead + price).
+- `?only=<id>` renders one panel at 1:1 with no page chrome, for capture or for
+  the device; `?at=HH:MM` freezes the clock so other verdicts can be inspected.
 
 ## Possible next steps
 

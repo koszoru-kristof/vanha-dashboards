@@ -15,17 +15,17 @@ const COMFORT = [18, 24];   // the indoor band the meters are drawn against
 
 /* ------------------------------------------------------------------ utils */
 
-function h(tag, cls, text) {
+export function h(tag, cls, text) {
   const n = document.createElement(tag);
   if (cls) n.className = cls;
   if (text != null) n.textContent = text;
   return n;
 }
-const add = (parent, ...kids) => (parent.append(...kids), parent);
-const t1 = (v) => (Math.round(v * 10) / 10).toFixed(1);
-const t0 = (v) => String(Math.round(v));
+export const add = (parent, ...kids) => (parent.append(...kids), parent);
+export const t1 = (v) => (Math.round(v * 10) / 10).toFixed(1);
+export const t0 = (v) => String(Math.round(v));
 
-function panel() {
+export function panel() {
   const p = h('div', 'panel');
   return p;
 }
@@ -33,7 +33,7 @@ function panel() {
 /** 24 h sparkline. Hatched area is opt-in; the end dot carries a paper ring. */
 let uid = 0;
 
-function spark(values, { w = 300, h: ht = 70, area = false, dot = true } = {}) {
+export function spark(values, { w = 300, h: ht = 70, area = false, dot = true } = {}) {
   const pid = `hatch45-${++uid}`;
   const min = Math.min(...values);
   const max = Math.max(...values);
@@ -91,7 +91,7 @@ function meter(value, { w = 190, ht = 22, lo = 12, hi = 30 } = {}) {
   return el.firstElementChild;
 }
 
-function header(ctx, { pad = 28 } = {}) {
+export function header(ctx, { pad = 28 } = {}) {
   const bar = h('div', 'row');
   bar.style.cssText = `padding:${pad}px ${pad}px 0;gap:12px;`;
   add(bar,
@@ -101,7 +101,7 @@ function header(ctx, { pad = 28 } = {}) {
   return bar;
 }
 
-function footer(ctx, text) {
+export function footer(ctx, text) {
   const f = h('div', 'row small');
   f.style.cssText = 'position:absolute;left:28px;right:28px;bottom:16px;gap:10px;';
   add(f, h('div', null, text), add(h('div', 'grow')),
@@ -393,4 +393,89 @@ export const bare = {
   },
 };
 
-export const DESIGNS = [lead, ledger, split, grid, bare];
+/* ------------------------------------------------------------- 6. Dots ---- */
+/* Dot plot: every room on one shared track, so the eye compares positions
+   rather than reading digits. Indoor rooms share a 16–28 scale with the
+   comfort band drawn heavier; balcony and outdoor sit below on their own
+   −20…30 scale, because a glazed balcony in autumn is nowhere near 16. */
+
+const DOT_SCALES = {
+  indoor:  { lo: 16, hi: 28, step: 2 },
+  outdoor: { lo: -20, hi: 30, step: 10 },
+};
+
+export const dots = {
+  id: 'dots',
+  name: 'Dots',
+  blurb: 'A dot per room on one shared 16–28 °C track, comfort band drawn heavier. '
+       + 'Balcony and outdoor below on their own −20…30 scale. Position does the '
+       + 'comparing; the printed value does the reading.',
+  render(ctx) {
+    const p = panel();
+    add(p, header(ctx));
+
+    const W = 744, LABEL = 0, TRACK_X = 150, TRACK_W = 420, VALUE_X = W;
+    const FONT = 'Inter, Helvetica, Arial, sans-serif';
+    const pos = (sc, v) => TRACK_X + ((v - sc.lo) / (sc.hi - sc.lo)) * TRACK_W;
+
+    const axis = (sc, y, { above = true } = {}) => {
+      let out = `<rect x="${TRACK_X}" y="${y}" width="${TRACK_W}" height="1" fill="#000"/>`;
+      for (let v = sc.lo; v <= sc.hi; v += sc.step) {
+        const x = pos(sc, v);
+        const zero = v === 0;
+        out += `<rect x="${(x - (zero ? 1 : 0.5)).toFixed(1)}" y="${above ? y - (zero ? 10 : 6) : y}"
+                      width="${zero ? 2 : 1}" height="${zero ? 10 : 6}" fill="#000"/>`
+             + `<text x="${x.toFixed(1)}" y="${above ? y - 12 : y + 24}" text-anchor="middle" font-size="15"
+                      font-weight="500" font-family="${FONT}">${v}</text>`;
+      }
+      return out;
+    };
+
+    const row = (sc, y, label, value, { strong = false, band = null } = {}) => {
+      let out = `<text x="${LABEL}" y="${y + 7}" font-size="${strong ? 22 : 19}"
+                       font-weight="${strong ? 700 : 500}" font-family="${FONT}">${label}</text>`
+              + `<rect x="${TRACK_X}" y="${y}" width="${TRACK_W}" height="1" fill="#000"/>`;
+      if (band) {
+        out += `<rect x="${pos(sc, band[0]).toFixed(1)}" y="${y - 1}"
+                      width="${(pos(sc, band[1]) - pos(sc, band[0])).toFixed(1)}" height="3" fill="#000"/>`;
+      }
+      // off-scale readings become an arrow at the edge, never a dot in the wrong place
+      if (value < sc.lo) {
+        out += `<polygon points="${TRACK_X - 2},${y} ${TRACK_X + 12},${y - 8} ${TRACK_X + 12},${y + 8}" fill="#000"/>`;
+      } else if (value > sc.hi) {
+        const xe = TRACK_X + TRACK_W;
+        out += `<polygon points="${xe + 2},${y} ${xe - 12},${y - 8} ${xe - 12},${y + 8}" fill="#000"/>`;
+      } else {
+        out += `<circle cx="${pos(sc, value).toFixed(1)}" cy="${y}" r="7" fill="#000" stroke="#fff" stroke-width="2"/>`;
+      }
+      // no letter-spacing here: Chrome mis-measures spaced SVG text for text-anchor="end"
+      out += `<text x="${VALUE_X}" y="${y + (strong ? 12 : 10)}" text-anchor="end" font-size="${strong ? 40 : 30}"
+                    font-weight="700" font-family="${FONT}">${t1(value)}°</text>`;
+      return out;
+    };
+
+    const indoor = ctx.rooms.filter((r) => r.id !== 'climate.balcony');
+    const rowGap = 48;
+    let y = 40;                                  // axis line
+    let art = axis(DOT_SCALES.indoor, y);
+    indoor.forEach((r, i) => {
+      art += row(DOT_SCALES.indoor, y + 34 + i * rowGap, r.label, ctx.temp(r.id), { band: COMFORT });
+    });
+    const yRule = y + 34 + indoor.length * rowGap - 14;
+    art += `<rect x="0" y="${yRule}" width="${W}" height="2" fill="#000"/>`;
+    const yBal = yRule + 40;
+    art += row(DOT_SCALES.outdoor, yBal, 'Balcony', ctx.temp('climate.balcony'));
+    art += row(DOT_SCALES.outdoor, yBal + rowGap + 4, 'Outdoor', ctx.temp(ctx.outdoor), { strong: true });
+    art += axis(DOT_SCALES.outdoor, yBal + rowGap + 4 + 30, { above: false });
+    const H = yBal + rowGap + 4 + 30 + 30;
+
+    const svg = h('div');
+    svg.innerHTML = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"
+        shape-rendering="geometricPrecision">${art}</svg>`;
+    svg.firstElementChild.style.cssText = 'display:block;margin:8px 28px 0;';
+    add(p, svg.firstElementChild);
+    return p;
+  },
+};
+
+export const DESIGNS = [lead, ledger, split, grid, bare, dots];

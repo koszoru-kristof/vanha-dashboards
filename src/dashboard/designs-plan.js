@@ -83,6 +83,18 @@ function patternHost(prefix) {
   return d;
 }
 
+/** The plan with a temperature in every room that has a sensor — shared with
+    the electricity studies, which put the plan beside a price column. */
+export function planWithTemps(ctx, box = PLAN_BOX) {
+  return planSVG(plan, {
+    ...box, labelNudge: NUDGE,
+    labelFor: (r) => {
+      const s = sensorFor(r.id);
+      return s ? [SHORT[r.id], `${t1(ctx.temp(s))}°`] : null;
+    },
+  });
+}
+
 /* -------------------------------------------------------------- 6. Plan -- */
 
 export const planDesign = {
