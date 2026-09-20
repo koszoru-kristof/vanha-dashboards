@@ -1,6 +1,7 @@
 # Espoo flat — interactive 3D flat
 
-An interactive 3D model of the apartment in `input/esite_1393807_*.pdf`, built to
+An interactive 3D model of the apartment in `input/esite_1393807_*.pdf` (the
+listing brochure — kept out of git, see `.gitignore`), built to
 be a sandbox for smart-home experiments: every light, sensor, appliance and
 opening is a first-class device with state you can drive from code or from a
 broker.
