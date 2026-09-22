@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Interactive 3D model of Espoo flat, used as a sandbox for smart-home experiments",
+  "description": "Interactive 3D model of a 45.5 m² flat in Espoo, used as a sandbox for smart-home experiments",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

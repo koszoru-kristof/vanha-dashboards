@@ -1,6 +1,6 @@
 # Smart-home sandbox for a Finnish flat
 
-A digital twin of a 45.5 m² apartment (Espoo flat, Espoo) for prototyping smart-home ideas before buying any hardware. The flat is rebuilt as an interactive 3D model from its listing floorplan, populated with 41 simulated devices, and paired with a set of e-ink dashboard designs that render the same live device state. Everything reads and writes one state bus, so the mock data source can be swapped for MQTT or Home Assistant in a single file.
+A digital twin of a 45.5 m² apartment in Espoo for prototyping smart-home ideas before buying any hardware. The flat is rebuilt as an interactive 3D model from its listing floorplan, populated with 41 simulated devices, and paired with a set of e-ink dashboard designs that render the same live device state. Everything reads and writes one state bus, so the mock data source can be swapped for MQTT or Home Assistant in a single file.
 
 The physical side of the project, choosing real sensors and radios, lives in [HARDWARE.md](HARDWARE.md).
 
