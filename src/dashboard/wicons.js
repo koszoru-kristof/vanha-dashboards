@@ -7,10 +7,16 @@
  * it can sit in front of a sun or moon and occlude it, the way every weather
  * app draws "partly cloudy", without needing a grey.
  *
- * icon(kind, { size, night }) -> SVG string. Kinds come from src/weather.js.
+ * icon(kind, { size, night, pal }) -> SVG string. Kinds come from src/weather.js;
+ * `pal` colours the sun and what falls, and nothing else.
  */
 
 const S = 'stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"';
+const SC = (c) => `stroke="${c}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"`;
+
+/* Colour roles (src/dashboard/palette.js); black when none is given, so the
+   1-bit designs are unchanged. Set per call by icon(). */
+let SUN = '#000', RAIN = '#000';
 
 const sun = (cx, cy, r) => {
   const rays = [];
@@ -20,7 +26,9 @@ const sun = (cx, cy, r) => {
     const x2 = cx + Math.cos(a) * (r + 9), y2 = cy + Math.sin(a) * (r + 9);
     rays.push(`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" ${S}/>`);
   }
-  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#000"/>${rays.join('')}`;
+  // yellow alone on white is faint on e-ink: a yellow disc, black edge, black rays
+  const edge = SUN === '#000' ? '' : ' stroke="#000" stroke-width="2"';
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${SUN}"${edge}/>${rays.join('')}`;
 };
 
 /* A crescent: a disc with a paper disc bitten out of it. */
@@ -35,10 +43,10 @@ const cloud = (dy = 0, x = 0) =>
 
 const drops = (n, y = 34) => {
   const xs = n === 1 ? [24] : n === 2 ? [18, 29] : [14, 24, 34];
-  return xs.map((x) => `<line x1="${x}" y1="${y}" x2="${x - 3}" y2="${y + 8}" ${S}/>`).join('');
+  return xs.map((x) => `<line x1="${x}" y1="${y}" x2="${x - 3}" y2="${y + 8}" ${SC(RAIN)}/>`).join('');
 };
 const flakes = (y = 36) => [14, 24, 34].map((x, i) =>
-  `<circle cx="${x}" cy="${y + (i % 2) * 5}" r="2.5" fill="#000"/>`).join('');
+  `<circle cx="${x}" cy="${y + (i % 2) * 5}" r="2.5" fill="${RAIN}"/>`).join('');
 
 const DRAW = {
   clear: (night) => (night ? moon(24, 24, 12) : sun(24, 24, 8)),
@@ -49,12 +57,15 @@ const DRAW = {
   showers: (night) => (night ? moon(17, 13, 8) : sun(16, 12, 5)) + cloud(-5, 4) + drops(2),
   rain: () => cloud(-6) + drops(3),
   snow: () => cloud(-7) + flakes(),
-  sleet: () => cloud(-6) + `<line x1="17" y1="34" x2="14" y2="42" ${S}/>`
-    + `<circle cx="26" cy="37" r="2.5" fill="#000"/><line x1="35" y1="34" x2="32" y2="42" ${S}/>`,
-  thunder: () => cloud(-7) + '<path d="M26 30 L19 39 H25 L21 47 L31 36 H25 L28 30 Z" fill="#000"/>',
+  sleet: () => cloud(-6) + `<line x1="17" y1="34" x2="14" y2="42" ${SC(RAIN)}/>`
+    + `<circle cx="26" cy="37" r="2.5" fill="${RAIN}"/><line x1="35" y1="34" x2="32" y2="42" ${SC(RAIN)}/>`,
+  // the bolt keeps a black edge, since yellow alone on white is faint
+  thunder: () => cloud(-7) + `<path d="M26 30 L19 39 H25 L21 47 L31 36 H25 L28 30 Z" fill="${SUN}" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/>`,
 };
 
-export function icon(kind, { size = 48, night = false } = {}) {
+export function icon(kind, { size = 48, night = false, pal = null } = {}) {
+  SUN = pal?.sun ?? '#000';
+  RAIN = pal?.rain ?? '#000';
   const body = (DRAW[kind] ?? DRAW.cloudy)(night);
   return `<svg width="${size}" height="${size}" viewBox="0 0 48 48">${body}</svg>`;
 }

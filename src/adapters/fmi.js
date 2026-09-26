@@ -120,7 +120,8 @@ export function startWeatherFeed(store, bus, {
 
 /**
  * FMI's edited point forecast: the one their own app and yle.fi show, hourly,
- * about three days out, refreshed roughly hourly. Asked for by coordinates
+ * a week out (asked for explicitly; the default is three days), refreshed
+ * roughly hourly. Asked for by coordinates
  * because forecast points are a grid, not stations; these are Tapiola's, so
  * forecast and observation describe the same spot.
  *
@@ -136,11 +137,15 @@ export function startWeatherFeed(store, bus, {
 export const TAPIOLA_LATLON = '60.178,24.787';
 const FORECAST_PARAMS = 'Temperature,WeatherSymbol3,SmartSymbol,PoP,Precipitation1h,WindSpeedMS';
 
-export function forecastUrl({ base = '/api/fmi', latlon = TAPIOLA_LATLON } = {}) {
+export function forecastUrl({ base = '/api/fmi', latlon = TAPIOLA_LATLON, days = 7, now = Date.now() } = {}) {
+  // The default is ~3 days; a week is there for the asking. Rounded to the
+  // hour so the relay can cache it.
+  const end = new Date(Math.floor(now / 3600e3) * 3600e3 + days * 24 * 3600e3);
   const q = new URLSearchParams({
     service: 'WFS', version: '2.0.0', request: 'getFeature',
     storedquery_id: 'fmi::forecast::edited::weather::scandinavia::point::simple',
     latlon, parameters: FORECAST_PARAMS, timestep: '60',
+    endtime: end.toISOString().replace(/\.\d+Z$/, 'Z'),
   });
   return `${base}/wfs?${q}`;
 }

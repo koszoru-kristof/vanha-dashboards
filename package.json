@@ -12,6 +12,7 @@
     "floorplan": "python3 tools/derive_floorplan.py"
   },
   "dependencies": {
+    "@fontsource-variable/jost": "^5.3.0",
     "three": "^0.186.0"
   },
   "devDependencies": {

@@ -11,6 +11,20 @@ import { DESIGNS } from './designs.js';
 import { PLAN_DESIGNS } from './designs-plan.js';
 import { PRICE_DESIGNS } from './designs-price.js';
 import { FORECAST_DESIGNS } from './designs-forecast.js';
+import { leadPrice } from './designs-price.js';
+import { MUTED } from './palette.js';
+import { COLOUR_FRESH } from './designs-colour.js';
+import { SCENARIOS, scenarioContext } from './scenarios.js';
+
+/* The colour tab re-renders the wall designs with the palette's four roles
+   switched on; everything else about them is identical. */
+const COLOUR_DESIGNS = [leadPrice, ...FORECAST_DESIGNS].map((d) => ({
+  id: `c-${d.id}`,
+  name: `Colour · ${d.name.replace(/^Forecast · /, '')}`,
+  blurb: d.blurb,
+  colour: true,
+  render: (ctx) => d.render({ ...ctx, pal: MUTED }),
+}));
 
 /* Same registry and same mock as the 3D view — these are candidate renderings
    of live device state, not mockups with invented numbers. Prices are the real
@@ -71,6 +85,19 @@ function context() {
   };
 }
 
+/* ?scenario=<id>|all|live picks the data for the fresh tab; default all. */
+const scenarioParam = params.get('scenario') ?? 'all';
+function freshDesigns() {
+  const ids = scenarioParam === 'all' ? Object.keys(SCENARIOS) : [scenarioParam];
+  return COLOUR_FRESH.flatMap((d) => ids.map((sid) => ({
+    // ?only=<design>&scenario=<id> still finds the bare design id
+    id: scenarioParam === 'all' ? `${d.id}--${sid}` : d.id,
+    name: SCENARIOS[sid] ? `${d.name} · ${SCENARIOS[sid].name}` : `${d.name} · live`,
+    blurb: SCENARIOS[sid] ? SCENARIOS[sid].note : d.blurb,
+    render: (ctx) => d.render(scenarioContext(sid, ctx)),
+  })));
+}
+
 const SECTIONS = [
   { id: 'climate', title: 'Climate', designs: [...DESIGNS, ...PLAN_DESIGNS],
     intro: 'Ten layouts for the flat’s temperatures: outdoor as the lead figure, rooms '
@@ -83,6 +110,17 @@ const SECTIONS = [
     intro: 'Lead + price with the “last 24 hours” block replaced by the rest of the day. '
          + 'Outdoor now and the forecast are real FMI data for Tapiola, Espoo; indoor and '
          + 'the lower half are as in Lead + price.' },
+  { id: 'colour', title: 'Colour', designs: COLOUR_DESIGNS,
+    intro: 'The same wall designs for a six-ink colour e-ink panel (Spectra 6, 800×480), '
+         + 'previewed in the pigments’ real, muted tones. Colour carries exactly four '
+         + 'meanings — yellow sun, blue rain, red for dear hours, green for the sauna '
+         + 'window — and nothing else is coloured, so each still reads in 1-bit.' },
+  { id: 'fresh', title: 'Colour, fresh', designs: freshDesigns(),
+    intro: 'Layered, more artistic proposals for a colour e-ink panel: the neighbourhood map '
+         + 'under the weather, a landscape whose hills are the price, a 24 h dial, a riso '
+         + 'poster. Shown across synthetic scenarios so each has to handle storm, frost, '
+         + 'negative prices, sleet and fog — pick one below, or all of them.',
+    chips: true },
 ];
 
 const root = document.getElementById('designs');
@@ -97,6 +135,14 @@ for (const section of SECTIONS) {
     const head = document.createElement('header');
     head.className = 'group-head';
     head.innerHTML = `<h2>${section.title}</h2><p>${section.intro}</p>`;
+    if (section.chips) {
+      const chips = document.createElement('p');
+      chips.className = 'chips';
+      const opts = [['all', 'All scenarios'], ...Object.entries(SCENARIOS).map(([k, v]) => [k, v.name]), ['live', 'Live data']];
+      chips.innerHTML = opts.map(([k, v]) =>
+        `<a href="?scenario=${k}#fresh" class="${k === scenarioParam ? 'on' : ''}">${v}</a>`).join('');
+      head.append(chips);
+    }
     group.append(head);
   }
   for (const design of section.designs) {

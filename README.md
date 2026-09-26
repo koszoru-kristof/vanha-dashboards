@@ -2,6 +2,15 @@
 
 A digital twin of a 45.5 m² apartment in Espoo for prototyping smart-home ideas before buying any hardware. The flat is rebuilt as an interactive 3D model from its listing floorplan, populated with 41 simulated devices, and paired with a set of e-ink dashboard designs that render the same live device state. Everything reads and writes one state bus, so the mock data source can be swapped for MQTT or Home Assistant in a single file.
 
+There is also a real wall panel: live FMI weather and forecast, live Nord Pool electricity prices, and a small home server that serves the page and renders it to PNG for an e-ink display. See [The real panel](#the-real-panel) and [Hosting it at home](#hosting-it-at-home).
+
+| | |
+|---|---|
+| ![Neighbourhood in a storm](docs/dash-art-map-storm.png) | ![Horizon on a negative-price Sunday](docs/dash-art-horizon-summer.png) |
+| Neighbourhood · autumn storm | Horizon · windy Sunday, prices below zero |
+| ![Forecast hours](docs/dash-fc-hours.png) | ![Riso in a storm](docs/dash-art-riso-storm.png) |
+| Forecast · Hours (1-bit, live data) | Riso · autumn storm |
+
 The physical side of the project, choosing real sensors and radios, lives in [HARDWARE.md](HARDWARE.md).
 
 ## Quick start
@@ -95,7 +104,7 @@ A Home Assistant WebSocket client and an `entity_id → device id` map would go 
 
 `dashboard.html` renders candidate layouts for a 7.5″ 800×480 1-bit e-ink panel. They are driven by the same device registry and mock feed as the 3D view, plus live Nord Pool spot prices, so every number on them is real state rather than a mockup. The captures above are 1:1 exports.
 
-Two tabs answer two questions.
+The first two tabs, Climate and Electricity, answer two questions. Forecast, Colour and Colour, fresh come after them.
 
 ### Climate: how is the flat doing?
 
@@ -158,7 +167,63 @@ The Forecast tab keeps Lead + price and replaces its "last 24 hours" block with 
 | **Parts** | The next three parts of the day as tiles. The night shows its low, the others their high |
 | **Words** | The one change in the next 12 h as a sentence ("Rain until 22:00"), plus tomorrow on one line |
 
+| | |
+|---|---|
+| ![Forecast · Hours](docs/dash-fc-hours.png) | ![Forecast · Words](docs/dash-fc-words.png) |
+| Hours | Words |
+
 `src/weather.js` holds the forecast model (`outlook`, `todayRange`, `dayParts`, `tomorrow`), and `src/dashboard/wicons.js` the 1-bit weather icons.
+
+### Colour: the same designs on a colour e-ink panel
+
+The Colour tab renders the wall designs for a six-ink Spectra 6 panel (black, white, red, yellow, blue, green; the 7.3″ version is also 800×480). The preview uses the pigments' real, muted tones. Colour has exactly four roles, set in `src/dashboard/palette.js`:
+
+| Role | Ink | Where |
+|---|---|---|
+| sun | yellow | the sun disc in weather icons, with a black edge because yellow alone is faint |
+| rain | blue | drops and flakes in icons, the rain bars on Today |
+| dear | red | hours over 15 c on the price ribbon |
+| go | green | the recommended sauna window bracket |
+
+![Colour · Hours](docs/dash-colour-hours.png)
+
+Text, numbers, rules and the hero stay black, so every design still reads if the colour is thresholded away. `MUTED` is the on-screen preview. `PURE` holds the primaries to send the panel driver, which maps each pixel to its nearest ink.
+
+### Colour, fresh: layered, artistic proposals
+
+Four designs for a colour panel, each built as one SVG painted back to front, so the layers are literal. They use soft tints (which the Spectra 6 driver dithers from its six inks), Jost (bundled via `@fontsource-variable/jost`), and ink text that never goes below 15 px. The only exception is the map credit. Every design carries the electricity price and the sauna recommendation.
+
+| Design | Layers |
+|---|---|
+| **Neighbourhood** | The streets, buildings, parks and pond around the Tapiola station, with the weather painted over them: a sun the roads run across, rain streaks, snow, fog banks, wind strokes, or the same map by night with stars. Power is a transit line: stops are hours, the line's colour is the tariff, and the sauna window is a ringed stop |
+| **Horizon** | A landscape. The sky's bands show time of day and weather. The sun or moon sits on its real sunrise–sunset arc. The hills are the next 24 h of prices: fields coloured by tariff, a lake where the price goes below zero, a pale plain where prices are not yet published, and a sauna cabin smoking at the cheapest window |
+| **Dial** | A 24 h clock face with noon at the top. From the inside out: temperature as a polar line, rain ticks, daylight arc, then price as radial bars. One hand shows now, and the sauna window is a green arc on the rim |
+| **Riso** | A risograph poster: two inks overprint where they cross, plus an off-register halftone. The temperature is set huge and the outlook as stacked words. The tariff is a ticket stub and the sauna is a rubber stamp |
+
+Negative prices get their own colour (blue), apart from cheap.
+
+| | |
+|---|---|
+| ![Neighbourhood, storm](docs/dash-art-map-storm.png) | ![Neighbourhood, cold snap](docs/dash-art-map-frost.png) |
+| Neighbourhood · autumn storm | Neighbourhood · cold snap, after dark |
+| ![Horizon, storm](docs/dash-art-horizon-storm.png) | ![Horizon, summer](docs/dash-art-horizon-summer.png) |
+| Horizon · storm at dusk, sauna tomorrow | Horizon · price lake below zero |
+| ![Dial, summer](docs/dash-art-dial-summer.png) | ![Riso, storm](docs/dash-art-riso-storm.png) |
+| Dial · windy Sunday | Riso · autumn storm |
+
+**Scenarios.** One live afternoon only shows one of the states a design has to handle, so the tab renders every design across synthetic days from `src/dashboard/scenarios.js`:
+
+| Scenario | Moment | What it tests |
+|---|---|---|
+| Autumn storm | October, 17:40 | Heavy rain and gusts at dusk, a 30 c evening price spike, sauna tomorrow |
+| Cold snap | January, 16:20 | −20 °C after dark, 50 c power all day |
+| Windy Sunday | June, 13:10 | 23 °C sun, negative midday prices, tomorrow not yet published |
+| Spring sleet | April, 08:15 | Sleet through the morning price peak |
+| Still fog | November, 07:05 | Fog before dawn, flat prices |
+
+Each scenario fills the same stores the live adapters do, so sunrise and sunset, the outlook sentence and the sauna verdict all come out of the real code. Pick one with the chips, or use `?scenario=<id>|all|live`. `?only=<design>--<scenario>` captures one panel.
+
+**The map** is baked by `tools/fetch_osm.mjs` into `data/tapiola-map.json` (~200 kB, one SVG path per layer). It covers 2.4 × 1.45 km at exactly the panel's aspect ratio. It is centred on the public FMI station, not on the flat. Map data © OpenStreetMap contributors, ODbL; the panel prints the credit.
 
 ### The real panel
 
@@ -215,3 +280,30 @@ WantedBy=multi-user.target
 sudo systemctl enable --now eink-panel
 ```
 
+---
+
+## 3. Findings so far
+
+What building the live panel and the studies turned up, recorded so it is not rediscovered:
+
+**Data**
+
+- **FMI open data is enough for outdoor.** Espoo Tapiola (fmisid 874863) gives 10-minute observations with 24 h of history, and the edited point forecast gives hourly values a week ahead if you ask for an `endtime`; the default is only three days. No API key is needed. FMI does not supply sunrise and sunset, so `sunTimes()` computes them.
+- **The newest FMI row can be empty.** A row for the current 10 minutes appears before its value. Take the latest row that has a temperature, or the panel shows a gap as a reading.
+- **porssisahko.net has no CORS header**, so the page cannot call it directly. The dev server and `server/index.mjs` relay it, and FMI is relayed too so the page talks to one origin. The feed is a rolling 48 h window, so today's first hour may already be gone. The ribbon leaves past, unpriced hours blank on purpose.
+- **Tomorrow's prices only exist after ~14:00.** Every design has to show "not yet published" instead of a cliff, a flat line or a stretched axis.
+- **A dev server started before a proxy was added falls back to `index.html` for the new path with HTTP 200.** A status-code check passes while the data is missing, so check the response body.
+
+**Design**
+
+- **The past 24 hours did not earn their space.** Nobody acts on yesterday. The forecast views put the rest of today there, with the day's high and low combining what has been observed since midnight with what is forecast until midnight.
+- **Auto-scaled lines exaggerate calm days.** A 2 °C day filled the same height as a 10 °C one. The forecast and colour charts now span at least 6–8 °C.
+- **Designs need scenarios, not one live afternoon.** A single cheap, rainy day never showed red prices, negative prices, night, fog or a "tomorrow" sauna window. Running the same real code on synthetic days (`src/dashboard/scenarios.js`) caught bugs a live check could not: a tomorrow window labelled as today, labels hidden behind hills, fog that turned into white stripes at night, notes running off the edge.
+- **Negative prices are a state of their own.** Below zero means you are paid to use power, so the colour designs show it in blue rather than as "very cheap".
+- **1-bit and colour want different rules.** 1-bit designs forbid greys and dithering. On a Spectra 6 panel, soft dithered tints are what make the commercial weather frames look calm. Text stays in pure ink either way, because small dithered type breaks up.
+- **Colour studies are previews, not proofs.** Every colour is an on-screen stand-in for a dithered pigment. Before choosing, check them on a real Spectra 6 panel, or at least with its six-ink dither simulated.
+
+**Hosting**
+
+- **Headless Chrome often writes the screenshot and then never exits.** The server polls for the file and stops Chrome itself, and uses a fresh profile per render so a second Chrome does not attach to the first.
+- **The view is picked from the clock, not from state,** so a browser showing the cycle and a device fetching `/panel.png` always agree without talking to each other.

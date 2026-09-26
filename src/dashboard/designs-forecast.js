@@ -102,7 +102,7 @@ function todayChart(ctx, { w = 432, ht = 116 } = {}) {
   const rainBase = plotB + 4 + rainH;
   const rain = ahead.filter(isWet).map((r) => {
     const bh = Math.max(3, Math.round((Math.min(r.mm, 3) / 3) * rainH));
-    return `<rect x="${(X(r.t) + 1).toFixed(0)}" y="${rainBase - bh}" width="${Math.max(3, Math.floor(X(r.t + HOUR) - X(r.t)) - 2)}" height="${bh}" fill="#000"/>`;
+    return `<rect x="${(X(r.t) + 1).toFixed(0)}" y="${rainBase - bh}" width="${Math.max(3, Math.floor(X(r.t + HOUR) - X(r.t)) - 2)}" height="${bh}" fill="${ctx.pal?.rain ?? '#000'}"/>`;
   }).join('');
   const ticks = [0, 6, 12, 18, 24].map((hr) => {
     const x = X(d0 + hr * HOUR);
@@ -166,7 +166,7 @@ export const fcHours = {
       const mm = block.reduce((s, r) => s + r.mm, 0);
       if (i) { const sep = h('div', 'rule-v'); sep.style.cssText = 'margin:0 0;'; add(row, sep); }
       const col = h('div', 'col grow'); col.style.cssText = 'align-items:center;gap:4px;';
-      add(col, h('div', 'cap tnum', hh(t)), iconEl(k, { size: 48, night }),
+      add(col, h('div', 'cap tnum', hh(t)), iconEl(k, { size: 48, night, pal: ctx.pal }),
         h('div', 'val tnum', deg(at.temp)),
         (() => { const m = h('div', 'small tnum', mmTxt(mm) || ' '); m.style.cssText = 'min-height:19px;'; return m; })());
       add(row, col);
@@ -190,7 +190,7 @@ export const fcParts = {
       if (i) { const sep = h('div', 'rule-v'); sep.style.cssText = 'margin:0 16px;'; add(right, sep); }
       const tile = h('div', 'col grow'); tile.style.cssText = 'gap:8px;';
       const fig = h('div', 'row'); fig.style.cssText = 'gap:8px;';
-      add(fig, iconEl(part.kind, { size: 48, night: part.night }), h('div', 'val tnum', deg(part.temp)));
+      add(fig, iconEl(part.kind, { size: 48, night: part.night, pal: ctx.pal }), h('div', 'val tnum', deg(part.temp)));
       add(tile, h('div', 'cap', part.label), fig,
         h('div', 'small', part.pick === 'min' ? 'low' : 'high'),
         h('div', 'small', mmTxt(part.mm) ? `rain ${mmTxt(part.mm)}` : 'dry'));
@@ -217,7 +217,7 @@ export const fcWords = {
     const right = h('div', 'col'); right.style.cssText = 'gap:6px;';
     const headRow = h('div', 'row'); headRow.style.cssText = 'gap:12px;padding-top:4px;';
     add(headRow, iconEl(o.rows?.length ? blockKind(o.rows.slice(0, 3)).kind : kind(first?.sym),
-                        { size: 48, night: first?.night }),
+                        { size: 48, night: first?.night, pal: ctx.pal }),
       (() => { const t = h('div', 'val', o.head); t.style.cssText = 'font-size:32px;'; return t; })());
     const sub = h('div', 'small', o.sub);
     sub.style.cssText = 'max-width:430px;';
@@ -226,7 +226,7 @@ export const fcWords = {
     if (tm) {
       const rule = h('div', 'rule'); rule.style.cssText = 'margin:8px 0 4px;';
       const tr = h('div', 'row'); tr.style.cssText = 'gap:10px;';
-      add(tr, h('div', 'cap', 'Tomorrow'), iconEl(tm.kind, { size: 24 }),
+      add(tr, h('div', 'cap', 'Tomorrow'), iconEl(tm.kind, { size: 24, pal: ctx.pal }),
         h('div', 'body tnum', `${SKY[tm.kind]} · ${t0(tm.min)}–${t0(tm.max)}°${mmTxt(tm.mm) ? ` · rain ${mmTxt(tm.mm)}` : ''}`));
       add(right, rule, tr);
     }

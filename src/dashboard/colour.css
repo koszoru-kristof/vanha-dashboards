@@ -1,0 +1,17 @@
+/*
+ * Ground-up colour proposals (designs-colour.js).
+ *
+ * A geometric sans (Jost, bundled, so the panel host needs no internet for
+ * fonts), antialiased, in ink on white. Colour lives in the illustrations and
+ * the data marks only; text is always ink.
+ */
+.panel.cp {
+  font-family: "Jost Variable", Jost, Futura, "Avenir Next", sans-serif;
+  color: #23262b;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: normal;
+}
+.cp .num { font-variant-numeric: tabular-nums; }
+.cp .abs { position: absolute; }
+.cp .lbl { font-size: 15px; font-weight: 450; letter-spacing: .02em; }
+.cp .val { font-size: 20px; font-weight: 600; line-height: 1.1; }

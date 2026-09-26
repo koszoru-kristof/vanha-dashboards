@@ -77,6 +77,12 @@ export function outlook(forecast, now = Date.now(), { horizon = 12 } = {}) {
     return { state: 'coming', head: `${word} from ${hh(rows[i].t)}`, from: rows[i].t,
              sub: `${j < 0 ? 'Into the night' : `Until ${hh(rows[j].t)}`} · ${mm.toFixed(0) === '0' ? '< 1' : mm.toFixed(0)} mm${windTxt}`, rows };
   }
+  // fog is the one dry condition worth a headline, because it lifts
+  if (kind(rows[0].sym) === 'fog') {
+    const j = rows.findIndex((r) => kind(r.sym) !== 'fog');
+    return { state: 'fog', head: j < 0 ? 'Fog all day' : `Fog until ${hh(rows[j].t)}`,
+             sub: j < 0 ? `No rain${windTxt}` : `then ${skyWord(rows.slice(j, j + 4))} · no rain${windTxt}`, rows };
+  }
   return { state: 'dry', head: `Dry, ${skyWord(rows)}`,
            sub: `No rain in the next ${horizon} hours${windTxt}`, rows };
 }
@@ -174,4 +180,44 @@ export function tomorrow(forecast, now = Date.now()) {
   const temps = all.map((r) => r.temp);
   return { ...blockKind(day), min: Math.min(...temps), max: Math.max(...temps),
            mm: day.reduce((s, r) => s + r.mm, 0) };
+}
+
+/**
+ * Sunrise and sunset for a day, by the standard sunrise equation (NOAA's
+ * simplified form, good to a minute or two at this latitude). FMI's forecast
+ * does not carry them. Returns ms timestamps, or null for polar day / night,
+ * which Espoo at 60°N never quite reaches.
+ */
+export function sunTimes(t = Date.now(), lat = 60.178, lon = 24.787) {
+  const rad = Math.PI / 180;
+  const d = new Date(t);
+  const noon = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 12);
+  const n = Math.round(noon / 86400000 + 2440587.5 - 2451545.0 + 0.0008);
+  const Js = n - lon / 360;
+  const M = (357.5291 + 0.98560028 * Js) % 360;
+  const Cc = 1.9148 * Math.sin(M * rad) + 0.02 * Math.sin(2 * M * rad) + 0.0003 * Math.sin(3 * M * rad);
+  const L = (M + Cc + 180 + 102.9372) % 360;
+  const Jt = 2451545.0 + Js + 0.0053 * Math.sin(M * rad) - 0.0069 * Math.sin(2 * L * rad);
+  const dec = Math.asin(Math.sin(L * rad) * Math.sin(23.4397 * rad));
+  const cosW = (Math.sin(-0.833 * rad) - Math.sin(lat * rad) * Math.sin(dec)) / (Math.cos(lat * rad) * Math.cos(dec));
+  if (cosW < -1 || cosW > 1) return null;
+  const w = Math.acos(cosW) / rad;
+  const ms = (J) => (J - 2440587.5) * 86400000;
+  return { rise: ms(Jt - w / 360), set: ms(Jt + w / 360) };
+}
+
+/** One summary per local calendar day: sky over the daytime, low, high, rain. */
+export function days(forecast, now = Date.now(), count = 6) {
+  const out = [];
+  for (let i = 0; i < count + 1 && out.length < count; i++) {
+    const d0 = dayStart(now, i), d1 = dayStart(now, i + 1);
+    const all = forecast.between(d0, d1);
+    if (all.length < (i === 0 ? 1 : 18)) continue;      // a partial last day would lie about its low
+    const day = all.filter((r) => { const h = new Date(r.t).getHours(); return h >= 7 && h <= 20; });
+    const temps = all.map((r) => r.temp);
+    out.push({ t: d0, ...blockKind(day.length ? day : all), night: false,
+               min: Math.min(...temps), max: Math.max(...temps),
+               mm: all.reduce((s, r) => s + r.mm, 0) });
+  }
+  return out;
 }

@@ -189,7 +189,7 @@ function ribbon(ctx, offset, { w = 744, h: cellH = 34, hourLabels = true, bracke
   let art = '';
   hours.forEach((p, i) => {
     const b = band(p.price);
-    const fill = b === 'cheap' ? '#fff' : b === 'dear' ? '#000' : b === 'normal' ? `url(#${pid})` : '#fff';
+    const fill = b === 'cheap' ? '#fff' : b === 'dear' ? (ctx.pal?.dear ?? '#000') : b === 'normal' ? `url(#${pid})` : '#fff';
     art += `<rect x="${(i * cellW).toFixed(1)}" y="${topPad}" width="${cellW.toFixed(1)}" height="${cellH}" fill="${fill}"/>`;
   });
   // grid: outer frame + a 1px divider at every hour (past, unpriced hours stay unframed)
@@ -213,9 +213,10 @@ function ribbon(ctx, offset, { w = 744, h: cellH = 34, hourLabels = true, bracke
   }
   if (bracket && v.window && v.window.offset === offset) {
     const bx = v.window.i0 * cellW, bw = (v.window.i1 - v.window.i0 + 1) * cellW;
-    art += `<rect x="${bx.toFixed(1)}" y="0" width="${bw.toFixed(1)}" height="4" fill="#000"/>`
-         + `<rect x="${bx.toFixed(1)}" y="0" width="2" height="8" fill="#000"/>`
-         + `<rect x="${(bx + bw - 2).toFixed(1)}" y="0" width="2" height="8" fill="#000"/>`;
+    const go = ctx.pal?.go ?? '#000';
+    art += `<rect x="${bx.toFixed(1)}" y="0" width="${bw.toFixed(1)}" height="4" fill="${go}"/>`
+         + `<rect x="${bx.toFixed(1)}" y="0" width="2" height="8" fill="${go}"/>`
+         + `<rect x="${(bx + bw - 2).toFixed(1)}" y="0" width="2" height="8" fill="${go}"/>`;
   }
   el.innerHTML = `<svg width="${w}" height="${H}" viewBox="0 0 ${w} ${H}" shape-rendering="crispEdges">
       <defs>${hatchDef(pid)}</defs>${art}</svg>`;
