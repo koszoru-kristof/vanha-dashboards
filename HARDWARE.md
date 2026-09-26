@@ -1,7 +1,8 @@
 # Smart home hardware research
 
 Research notes for kitting out the flat with real devices — the physical
-counterpart to the simulated devices in this repo.
+counterpart to the simulated devices in this repo. The e-ink display for
+the dashboards is covered separately in [EINK_HARDWARE.md](EINK_HARDWARE.md).
 
 - **Location:** Finland
 - **Controller:** Home Assistant (local-first, no vendor cloud)
