@@ -146,3 +146,72 @@ The verdict compares the next two hours with the cheapest remaining window today
 - Outdoor comes from `climate.outdoor`, a weather feed. The glazed balcony runs about 3 °C warm and is deliberately not used as a stand-in.
 
 URL parameters: `?only=<id>` renders one panel at 1:1 with no page chrome, for capture or for the device. `?at=HH:MM` freezes the clock so other verdicts can be inspected.
+
+### Forecast: what will the rest of the day do?
+
+The Forecast tab keeps Lead + price and replaces its "last 24 hours" block with the rest of the day. Outdoor now and the forecast are real FMI data for Tapiola. The big figure stays the observed temperature. Under it, the high and low are for the calendar day, observed since midnight plus forecast to midnight, followed by the wind.
+
+| Design | Character |
+|---|---|
+| **Today** | 00–24 as one line: observed solid and hatched, forecast dashed, rain as black bars. The scale spans at least 8 °C, so a flat day draws flat |
+| **Hours** | The next 18 h as six 3-hourly columns: time, icon, temperature, rain |
+| **Parts** | The next three parts of the day as tiles. The night shows its low, the others their high |
+| **Words** | The one change in the next 12 h as a sentence ("Rain until 22:00"), plus tomorrow on one line |
+
+`src/weather.js` holds the forecast model (`outlook`, `todayRange`, `dayParts`, `tomorrow`), and `src/dashboard/wicons.js` the 1-bit weather icons.
+
+### The real panel
+
+`panel.html` shows Lead + price and the four forecast views on live data. It is the page meant for the wall:
+
+| Part | Source |
+|---|---|
+| Outdoor now, 24 h trend, high / low, humidity | FMI open-data observations, Espoo Tapiola station (fmisid 874863), 10 min steps. `src/adapters/fmi.js` |
+| Price ribbon, current price, sauna verdict | Nord Pool FI day-ahead via porssisahko.net, as above |
+| Forecast views | FMI edited point forecast for the same spot, hourly |
+| Indoor strip | Still the mock, labelled **Indoor · simulated** until the room sensors exist |
+
+By default the page cycles through the views, one per minute (`?every=<seconds>` changes that). `/views/<id>` or `?view=<id>` pins one view, and `/views` lists them. In a browser, a click or the arrow keys step to the next view. The view is picked from the clock, so a browser and `/panel.png` show the same one.
+
+If a feed is down or has no data, the header says `No weather` or `No prices` beside the clock, and missing readings print as `–`. It never shows a made-up number as if it were live. In dev it is at `http://localhost:5173/panel.html`.
+
+### Hosting it at home
+
+`server/index.mjs` is a small Node server with no dependencies. It serves the built pages, relays FMI and porssisahko with a cache (on an upstream outage it keeps serving the last good answer), and renders the panel to a PNG:
+
+```sh
+npm run build
+PORT=8080 npm run serve
+```
+
+| URL | For |
+|---|---|
+| `http://<host>:8080/` | e-ink devices with a browser (Boox, a jailbroken Kindle, an old tablet). Cycles through the views and redraws once a minute |
+| `http://<host>:8080/views/<id>` | one view, pinned |
+| `http://<host>:8080/panel.png` | devices without one (ESP32 + Waveshare 7.5″, Inkplate, TRMNL in BYOS mode). An 800×480 screenshot, regenerated at most once a minute. Takes `?view=` and `?every=` too |
+| `http://<host>:8080/healthz` | upstream and renderer status |
+
+The PNG needs Chrome or Chromium on the host (`sudo apt install chromium` on a Pi; set `CHROME=/path` if it is somewhere unusual). It renders in `Europe/Helsinki` time (override with `PANEL_TZ`). It is still an RGB image with antialiased glyph edges, so the device thresholds it to 1-bit. The designs are drawn to survive that.
+
+To keep it running on a Raspberry Pi or other Linux box, `/etc/systemd/system/eink-panel.service`:
+
+```ini
+[Unit]
+Description=E-ink panel server
+After=network-online.target
+
+[Service]
+WorkingDirectory=/home/pi/smarthome_stuff
+ExecStart=/usr/bin/node server/index.mjs
+Environment=PORT=8080
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```sh
+sudo systemctl enable --now eink-panel
+```
+

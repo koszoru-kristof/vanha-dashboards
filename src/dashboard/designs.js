@@ -22,8 +22,9 @@ export function h(tag, cls, text) {
   return n;
 }
 export const add = (parent, ...kids) => (parent.append(...kids), parent);
-export const t1 = (v) => (Math.round(v * 10) / 10).toFixed(1);
-export const t0 = (v) => String(Math.round(v));
+/* A missing reading prints as a dash, never as a stand-in number. */
+export const t1 = (v) => (Number.isFinite(v) ? (Math.round(v * 10) / 10).toFixed(1) : '–');
+export const t0 = (v) => (Number.isFinite(v) ? String(Math.round(v)) : '–');
 
 export function panel() {
   const p = h('div', 'panel');
@@ -35,6 +36,11 @@ let uid = 0;
 
 export function spark(values, { w = 300, h: ht = 70, area = false, dot = true } = {}) {
   const pid = `hatch45-${++uid}`;
+  if (values.length < 2) {                  // no series yet: leave the space blank
+    const el = h('div');
+    el.innerHTML = `<svg width="${w}" height="${ht}"></svg>`;
+    return el.firstElementChild;
+  }
   const min = Math.min(...values);
   const max = Math.max(...values);
   const span = max - min || 1;
@@ -97,6 +103,9 @@ export function header(ctx, { pad = 28 } = {}) {
   add(bar,
     h('div', 'cap', 'Espoo flat'),
     add(h('div', 'grow')),
+    // ctx.alert: a feed is down or stale. Said in words, next to the clock,
+    // because a stale number otherwise looks exactly like a current one.
+    ...(ctx.alert ? [h('div', 'cap', ctx.alert)] : []),
     h('div', 'cap tnum', ctx.now));
   return bar;
 }

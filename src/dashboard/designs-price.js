@@ -452,32 +452,41 @@ export const leadPrice = {
       spark(ctx.hist.get('climate.outdoor'), { w: 330, h: 92, area: true }));
     add(main, left, right);
     add(p, main);
-
-    const indoorCap = h('div', 'cap', 'Indoor');
-    indoorCap.style.cssText = 'padding:22px 28px 0;';
-    const rule1 = h('div', 'rule'); rule1.style.cssText = 'margin:8px 28px 0;width:auto;';
-    const strip = h('div', 'row'); strip.style.cssText = 'padding:10px 28px 0;';
-    ctx.rooms.forEach((r, i) => {
-      if (i) { const sep = h('div', 'rule-v'); sep.style.cssText = 'height:46px;margin:0 18px;'; add(strip, sep); }
-      const tile = h('div', 'col grow'); tile.style.cssText = 'gap:6px;';
-      add(tile, h('div', 'cap', r.label), h('div', 'val deg tnum', t1(ctx.temp(r.id))));
-      add(strip, tile);
-    });
-    add(p, indoorCap, rule1, strip);
-
-    const v = ctx.verdict;
-    const text = verdictText(v, ctx.saunaWatts);
-    const rule2 = h('div', 'rule'); rule2.style.cssText = 'margin:16px 28px 0;width:auto;';
-    const prow = h('div', 'row');
-    prow.style.cssText = 'padding:10px 28px 0;gap:14px;align-items:baseline;';
-    add(prow, h('div', 'cap', 'Electricity'), h('div', 'body tnum', `${fmtC(v.nowPrice)} c/kWh`),
-              add(h('div', 'grow')), h('div', 'cap', 'Sauna'), h('div', 'body', text.head));
-    const rb = ribbon(ctx, 0, { w: 744, h: 24, hourLabels: true });
-    rb.style.cssText = 'display:block;margin:6px 28px 0;';
-    add(p, rule2, prow, rb);
-    return p;
+    return leadPriceBottom(ctx, p);
   },
 };
+
+/**
+ * The lower half of Lead + price — indoor strip, price ribbon, sauna verdict —
+ * appended to `p`. Shared with the forecast variants, which only swap the
+ * outdoor block above it; they keep the top at the same height so the strip
+ * lands on the same pixel row in all of them.
+ */
+export function leadPriceBottom(ctx, p) {
+  const indoorCap = h('div', 'cap', ctx.indoorLabel ?? 'Indoor');
+  indoorCap.style.cssText = 'padding:22px 28px 0;';
+  const rule1 = h('div', 'rule'); rule1.style.cssText = 'margin:8px 28px 0;width:auto;';
+  const strip = h('div', 'row'); strip.style.cssText = 'padding:10px 28px 0;';
+  ctx.rooms.forEach((r, i) => {
+    if (i) { const sep = h('div', 'rule-v'); sep.style.cssText = 'height:46px;margin:0 18px;'; add(strip, sep); }
+    const tile = h('div', 'col grow'); tile.style.cssText = 'gap:6px;';
+    add(tile, h('div', 'cap', r.label), h('div', 'val deg tnum', t1(ctx.temp(r.id))));
+    add(strip, tile);
+  });
+  add(p, indoorCap, rule1, strip);
+
+  const v = ctx.verdict;
+  const text = verdictText(v, ctx.saunaWatts);
+  const rule2 = h('div', 'rule'); rule2.style.cssText = 'margin:16px 28px 0;width:auto;';
+  const prow = h('div', 'row');
+  prow.style.cssText = 'padding:10px 28px 0;gap:14px;align-items:baseline;';
+  add(prow, h('div', 'cap', 'Electricity'), h('div', 'body tnum', `${fmtC(v.nowPrice)} c/kWh`),
+            add(h('div', 'grow')), h('div', 'cap', 'Sauna'), h('div', 'body', text.head));
+  const rb = ribbon(ctx, 0, { w: 744, h: 24, hourLabels: true });
+  rb.style.cssText = 'display:block;margin:6px 28px 0;';
+  add(p, rule2, prow, rb);
+  return p;
+}
 
 /* ------------------------------------------------------ 15. Plan + price -- */
 

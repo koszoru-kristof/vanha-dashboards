@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "serve": "node server/index.mjs",
     "floorplan": "python3 tools/derive_floorplan.py"
   },
   "dependencies": {

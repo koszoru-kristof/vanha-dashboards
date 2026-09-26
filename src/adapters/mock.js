@@ -12,7 +12,11 @@ function diurnal(date = new Date()) {
   return Math.sin(((hours - 9) / 24) * Math.PI * 2);   // peak mid-afternoon
 }
 
-export function startMock(bus, { interval = 1500, baseOutdoor = 8.5 } = {}) {
+/**
+ * `outdoor: false` leaves climate.outdoor to a real feed (src/adapters/fmi.js)
+ * and derives the balcony and open-window rooms from whatever it reads there.
+ */
+export function startMock(bus, { interval = 1500, baseOutdoor = 8.5, outdoor = true } = {}) {
   const jitter = (v, amp) => v + (Math.random() - 0.5) * amp;
   const r1 = (v) => Math.round(v * 10) / 10;
 
@@ -27,9 +31,14 @@ export function startMock(bus, { interval = 1500, baseOutdoor = 8.5 } = {}) {
 
     // outdoor drifts around a shallow day/night curve; the glazed balcony sits
     // a few degrees above it and correspondingly drier
-    const outdoorT = r1(baseOutdoor + diurnal() * 3.2 + (Math.random() - 0.5) * 0.3);
-    const outdoorH = Math.round(jitter(72 - diurnal() * 8, 3));
-    bus.set('climate.outdoor', { temperature: outdoorT, humidity: outdoorH }, 'mock');
+    let outdoorT, outdoorH;
+    if (outdoor) {
+      outdoorT = r1(baseOutdoor + diurnal() * 3.2 + (Math.random() - 0.5) * 0.3);
+      outdoorH = Math.round(jitter(72 - diurnal() * 8, 3));
+      bus.set('climate.outdoor', { temperature: outdoorT, humidity: outdoorH }, 'mock');
+    } else {
+      ({ temperature: outdoorT, humidity: outdoorH } = bus.get('climate.outdoor'));
+    }
     bus.set('climate.balcony', {
       temperature: r1(outdoorT + 3.4),
       humidity: Math.max(25, outdoorH - 14),

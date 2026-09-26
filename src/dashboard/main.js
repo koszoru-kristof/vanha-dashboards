@@ -4,11 +4,13 @@ import { buildDevices } from '../devices.js';
 import { createBus } from '../state.js';
 import { startMock } from '../adapters/mock.js';
 import { startPriceFeed } from '../adapters/porssisahko.js';
+import { createWeatherStore, startWeatherFeed, createForecastStore, startForecastFeed } from '../adapters/fmi.js';
 import { createHistory } from '../history.js';
 import { createPriceStore, verdict } from '../prices.js';
 import { DESIGNS } from './designs.js';
 import { PLAN_DESIGNS } from './designs-plan.js';
 import { PRICE_DESIGNS } from './designs-price.js';
+import { FORECAST_DESIGNS } from './designs-forecast.js';
 
 /* Same registry and same mock as the 3D view — these are candidate renderings
    of live device state, not mockups with invented numbers. Prices are the real
@@ -17,6 +19,13 @@ const bus = createBus(buildDevices(plan));
 startMock(bus, { interval: 2000 });
 const prices = createPriceStore();
 startPriceFeed(prices);
+/* Real FMI observations and forecast, used by the forecast studies only; the
+   climate studies keep the mock outdoor so they stay comparable. Not given
+   the bus, or the mock and FMI would fight over climate.outdoor. */
+const weather = createWeatherStore();
+const forecast = createForecastStore();
+startWeatherFeed(weather, null);
+startForecastFeed(forecast);
 
 const ROOMS = [
   { id: 'climate.living',   label: 'Living' },
@@ -56,6 +65,9 @@ function context() {
     verdict: verdict(prices, +d),
     saunaWatts: bus.byId.get('heater.sauna').watts,
     nowMs: +d,
+    weather,
+    forecast,
+    indoorLabel: 'Indoor',
   };
 }
 
@@ -67,6 +79,10 @@ const SECTIONS = [
     intro: 'Six ways to show the Finnish spot price and answer “is now a good time for '
          + 'a sauna?”. Nord Pool FI day-ahead prices, c/kWh incl. VAT; tomorrow appears '
          + 'after ~14:00. The sauna model: a 6 kW heater over a 2 h window, ≈ 6.3 kWh.' },
+  { id: 'forecast', title: 'Forecast', designs: FORECAST_DESIGNS,
+    intro: 'Lead + price with the “last 24 hours” block replaced by the rest of the day. '
+         + 'Outdoor now and the forecast are real FMI data for Tapiola, Espoo; indoor and '
+         + 'the lower half are as in Lead + price.' },
 ];
 
 const root = document.getElementById('designs');
@@ -106,6 +122,8 @@ const drawAll = () => draws.forEach((d) => d());
 drawAll();
 setInterval(drawAll, 4000);
 prices.subscribe(drawAll);
+weather.subscribe(drawAll);
+forecast.subscribe(drawAll);
 
 /* Tabs: the hash picks a section, or all of them. */
 function showTab() {
@@ -122,4 +140,4 @@ window.addEventListener('hashchange', showTab);
 showTab();
 if (only) document.body.classList.add('only');
 
-Object.assign(window, { bus, hist, plan, prices });
+Object.assign(window, { bus, hist, plan, prices, weather, forecast });
