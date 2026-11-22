@@ -30,7 +30,8 @@ function object(kind, ink, paper, reach = 0) {   // reach: how much further the 
     case 'umbrella':
       return `<path d="M${cx - 170},420 A170,170 0 0 1 ${cx + 170},420 Q${cx + 142},400 ${cx + 113},420 Q${cx + 85},400 ${cx + 57},420 Q${cx + 28},400 ${cx},420 Q${cx - 28},400 ${cx - 57},420 Q${cx - 85},400 ${cx - 113},420 Q${cx - 142},400 ${cx - 170},420 Z" fill="${ink}"/>`
         + `<rect x="${cx - 5}" y="250" width="10" height="330" fill="${paper}"/><rect x="${cx - 5}" y="420" width="10" height="160" fill="${ink}"/>`
-        + `<path d="M${cx + 5},580 A30,30 0 0 1 ${cx - 55},580" fill="none" stroke="${ink}" stroke-width="10" stroke-linecap="round"/>`;
+        // the crook starts on the shaft's centre line, so the 10 px stroke runs on from the 10 px shaft
+        + `<path d="M${cx},580 A30,30 0 0 1 ${cx - 60},580" fill="none" stroke="${ink}" stroke-width="10" stroke-linecap="round"/>`;
     case 'skis':
       return `<rect x="${cx - 60}" y="200" width="30" height="400" rx="15" fill="${ink}"/><rect x="${cx + 30}" y="200" width="30" height="400" rx="15" fill="${ink}"/>`
         + `<rect x="${cx - 60}" y="200" width="30" height="60" rx="15" fill="${BAU.red}"/><rect x="${cx + 30}" y="200" width="30" height="60" rx="15" fill="${BAU.red}"/>`
