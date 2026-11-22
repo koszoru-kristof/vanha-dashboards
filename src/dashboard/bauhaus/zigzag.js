@@ -4,12 +4,12 @@
  * the wind, gentle in a calm and sharp in a gale; the corner is the price
  * of power in its colour, and the day is set in it.
  */
-import { frame, facts, num, euro } from '../posters/common.js';
+import { frame, facts, num, euro, SIZE } from '../posters/common.js';
 import { BAU, priceInk, priceWord, mark, foot, saunaLine, T } from './bauhauskit.js';
 
-const W = 480, H = 800;
-
-function render(ctx) {
+function render(ctx, orient = 'portrait') {
+  const [W, H] = SIZE[orient];
+  const ex = W - 480;                 // the extra width of the 3:4 sheet; 0 on the 480 poster
   const f = facts(ctx);
   const S = f.sauna;
   const wind = Number.isFinite(f.wind) ? f.wind : 3;
@@ -18,7 +18,7 @@ function render(ctx) {
   const onInk = ink === BAU.mustard ? BAU.black : BAU.cream;
   let s = `<rect width="${W}" height="${H}" fill="${BAU.cream}"/>`;
   // the bands, all with the same jog
-  const K = 4, pitch = 40, thick = 20;
+  const K = Math.round((W + 40) / 130), pitch = 40, thick = 20;   // the same jog length on any width: 4 legs at 480, 5 at 600
   const xs = Array.from({ length: K + 1 }, (_, k) => -20 + ((W + 40) * k) / K);
   for (let y0 = 170; y0 < H + amp; y0 += pitch) {
     const pts = xs.map((x, k) => `${x.toFixed(1)},${(y0 + (k % 2 ? amp : -amp) * (k === 0 || k === K ? 0.5 : 1)).toFixed(1)}`);
@@ -37,12 +37,12 @@ function render(ctx) {
     'the bands jog with the wind, gentle in a calm and sharp in a gale · the corner is the price',
     `${saunaLine(S)}${S.cost != null ? `, about ${euro(S.cost)}` : ''}`,
   ] });
-  return frame('portrait', s, { bg: BAU.cream });
+  return frame(orient, s, { bg: BAU.cream });
 }
 
 export const zigzagP = {
   id: 'bh-zigzag-p', orient: 'portrait', name: 'Zigzag · portrait',
   blurb: 'The catalogue’s angular stripes: black bands on cream that jog together across the sheet, gentle in a calm '
        + 'and sharp in a gale, with one corner in the price’s colour carrying the day.',
-  render,
+  render, tall: true,
 };

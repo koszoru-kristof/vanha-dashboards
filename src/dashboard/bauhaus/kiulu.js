@@ -8,12 +8,11 @@
  * price's colour — green when cheap, red when dear — and the small type
  * says when and for how much.
  */
-import { frame, facts, num, euro } from '../posters/common.js';
+import { frame, facts, num, euro, SIZE } from '../posters/common.js';
 import { BAU, priceInk, priceWord, mark, foot, saunaLine, T } from './bauhauskit.js';
 
-const W = 480, H = 800;
-
-function render(ctx) {
+function render(ctx, orient = 'portrait') {
+  const [W, H] = SIZE[orient];
   const f = facts(ctx);
   const S = f.sauna;
   const p = f.price;
@@ -23,10 +22,10 @@ function render(ctx) {
   let s = `<rect width="${W}" height="${H}" fill="${ground}"/>`;
 
   // the bucket: a disc cut by the left edge, the water a ring within
-  const C = { x: 150, y: 390, r: 300 };
+  const C = { x: 150 + (W - 480) * 0.6, y: 390 - (W - 480) / 12, r: 300 + (W - 480) / 12 }, q = C.r / 300;   // a wider sheet: the bucket steps in and grows
   s += `<circle cx="${C.x}" cy="${C.y}" r="${C.r}" fill="${disc}"/>`;
-  s += `<circle cx="${C.x}" cy="${C.y}" r="112" fill="${ground}"/>`
-     + `<circle cx="${C.x}" cy="${C.y}" r="96" fill="none" stroke="${disc}" stroke-width="3"/>`
+  s += `<circle cx="${C.x}" cy="${C.y}" r="${112 * q}" fill="${ground}"/>`
+     + `<circle cx="${C.x}" cy="${C.y}" r="${96 * q}" fill="none" stroke="${disc}" stroke-width="3"/>`
      + `<circle cx="${C.x}" cy="${C.y}" r="9" fill="${disc}"/>`;
 
   // the ladle, from the right edge to the sauna's hour on the rim
@@ -48,7 +47,7 @@ function render(ctx) {
   s += T(W - 40, 744, [S.cost != null ? `about ${euro(S.cost)}` : null, p != null ? `power ${num(p, 1)} c/kWh, ${priceWord(p)}` : 'no prices yet'].filter(Boolean).join(' · '), { size: 12, weight: 500, fill: ink, anchor: 'end' });
   s += mark(W - 40, 60, f.place.toLowerCase(), { fill: ink, anchor: 'end' })
      + T(W - 40, 82, `${num(f.temp, 0)}° · ${f.out.head.toLowerCase()} · ${f.time}`, { size: 12, weight: 500, fill: ink, anchor: 'end' });
-  return frame('portrait', s, { bg: ground });
+  return frame(orient, s, { bg: ground });
 }
 
 export const kiuluP = {
@@ -56,5 +55,5 @@ export const kiuluP = {
   blurb: 'The sauna bucket from above with the ladle laid across it, composed like the turntable poster: a white '
        + 'disc cut by the edge, an arm reaching in from the other side. The ladle points at the sauna’s hour on '
        + 'the rim, midnight at the top; the sheet is the price’s colour, green when cheap, red when dear.',
-  render,
+  render, tall: true,
 };

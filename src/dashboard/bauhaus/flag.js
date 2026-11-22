@@ -7,12 +7,12 @@
  * zero — so the flag says at a glance whether to run the sauna, and how
  * hard the wind blows outside.
  */
-import { frame, facts, num, euro, smooth } from '../posters/common.js';
+import { frame, facts, num, euro, smooth, SIZE } from '../posters/common.js';
 import { BAU, priceInk, priceWord, mark, foot, saunaLine, T } from './bauhauskit.js';
 
-const W = 480, H = 800;
-
-function render(ctx) {
+function render(ctx, orient = 'portrait') {
+  const [W, H] = SIZE[orient];
+  const e = W - 480;                                               // the extra width of a 3:4 sheet
   const f = facts(ctx);
   const S = f.sauna;
   const wind = Number.isFinite(f.wind) ? f.wind : 3;
@@ -20,16 +20,16 @@ function render(ctx) {
   let s = `<rect width="${W}" height="${H}" fill="${BAU.cream}"/>`;
 
   // the pole
-  const px = 96;
+  const px = 96 + e / 5;
   s += `<rect x="${px - 6}" y="120" width="12" height="${H - 120}" fill="${BAU.black}"/>`;
   s += `<circle cx="${px}" cy="118" r="12" fill="${BAU.black}"/>`;
 
   // the cloth: its length and its ripple from the wind
-  const len = 90 + Math.min(16, wind) * 19;
+  const len = (90 + Math.min(16, wind) * 19) * ((W - px - 6) / 378);   // a gale still reaches the edge
   const amp = 4 + Math.min(16, wind) * 1.6;
   const sag = Math.max(0, 60 - wind * 5);                          // a calm flag droops
   const top = [], bottom = [];
-  const y0 = 150, hgt = 230;
+  const y0 = 150, hgt = 230 + e / 4;
   for (let i = 0; i <= 12; i++) {
     const u = i / 12, x = px + 6 + len * u;
     const wave = amp * Math.sin(u * Math.PI * 2.2 - 0.6) * u;
@@ -49,7 +49,7 @@ function render(ctx) {
   s += foot(W, H, { left: '', right: String(f.d.getFullYear()), lines: [] })
      + T(px + 30, H - 46, f.place.toUpperCase(), { size: 12, weight: 700, ls: 4 })
      + T(px + 30, H - 28, 'the flag flies as far as the wind · its colour is the price', { size: 7.5, weight: 600, ls: 1 });
-  return frame('portrait', s, { bg: BAU.cream });
+  return frame(orient, s, { bg: BAU.cream });
 }
 
 export const flagP = {
@@ -57,5 +57,5 @@ export const flagP = {
   blurb: 'A flag on a black pole, flying as far as the wind carries it — a short fold in a calm, streaming and '
        + 'rippling in a gale. It is a signal flag: its colour is the price of power now, green cheap, mustard fair, '
        + 'red dear, blue below zero.',
-  render,
+  render, tall: true,
 };

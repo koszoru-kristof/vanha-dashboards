@@ -6,10 +6,9 @@
  * dear), and the temperature is printed over both. The outlook is set as
  * stacked words; the sauna window is a rubber stamp.
  */
-import { frame, facts, esc, int, num, euro, uid, hash, rng, measure, SANS } from './common.js';
+import { frame, facts, esc, int, num, euro, uid, hash, rng, measure, SANS, SIZE } from './common.js';
 import { RISO, skyInk, priceInk, MULTIPLY } from './artkit.js';
 
-const W = 480, H = 800;
 const T = (x, y, s, { size = 16, weight = 600, fill = RISO.ink, anchor = 'start', ls = 0, extra = '' } = {}) =>
   `<text x="${x}" y="${y}" font-family='${SANS}' font-size="${size}" font-weight="${weight}" letter-spacing="${ls}" text-anchor="${anchor}" fill="${fill}"${extra}>${esc(s)}</text>`;
 
@@ -22,17 +21,19 @@ function stack(f) {
   return o.head.toUpperCase().split(' ').slice(0, 3);
 }
 
-function render(ctx) {
+function render(ctx, orient = 'portrait') {
+  const [W, H] = SIZE[orient];
+  const u = W / 480;                         // the tall sheet: both discs and the figure a size up
   const f = facts(ctx);
   const R = rng(hash(`${f.d.toDateString()}${f.scenario?.id ?? ''}`));
   const ids = { disc: uid('rd'), dots: uid('rp'), halo: uid('rh') };
   const k = f.sky ?? 'cloudy';
   const sky = skyInk(k, { night: f.night, temp: f.temp });
-  const W0 = { x: 262, y: 262, r: 172 };
+  const W0 = { x: W - 218 * u, y: 262, r: 172 * u };
   // the price disc grows with the price, on a log scale from 0 to 60 c
   const lvl = f.price == null ? 0.3 : Math.max(0, Math.min(1, Math.log2(1 + Math.max(0, f.price) / 2.5) / Math.log2(25)));
-  const P0 = { r: 64 + 64 * lvl };
-  P0.x = 96 + P0.r * 0.55; P0.y = 452 - P0.r * 0.45;
+  const P0 = { r: (64 + 64 * lvl) * u };
+  P0.x = 96 * u + P0.r * 0.55; P0.y = 452 - P0.r * 0.45;
 
   let s = `<defs>
     <clipPath id="${ids.disc}"><circle cx="${W0.x}" cy="${W0.y}" r="${W0.r}"/></clipPath>
@@ -45,36 +46,36 @@ function render(ctx) {
   // the sky's texture, inside its disc
   let tex = '';
   if (['rain', 'showers', 'thunder', 'sleet'].includes(k)) {
-    for (let i = 0; i < 11; i++) {
+    for (let i = 0; i < Math.round(11 * u); i++) {
       const x = W0.x - W0.r + 26 + i * 30 + R() * 8, y0 = W0.y - W0.r + 20 + R() * 60, len = 150 + R() * 170;
       tex += `<line x1="${x}" y1="${y0}" x2="${x - len * 0.12}" y2="${y0 + len}" stroke="${RISO.blue}" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="0.1 7"/>`;
     }
   } else if (k === 'fog') {
     for (let y = W0.y - W0.r + 30; y < W0.y + W0.r; y += 38) tex += `<rect x="0" y="${y}" width="${W}" height="15" fill="${RISO.paper}"/>`;
   } else if (k === 'snow') {
-    for (let i = 0; i < 60; i++) tex += `<circle cx="${W0.x - W0.r + R() * W0.r * 2}" cy="${W0.y - W0.r + R() * W0.r * 2}" r="${2 + R() * 2.5}" fill="${RISO.paper}"/>`;
+    for (let i = 0; i < Math.round(60 * u * u); i++) tex += `<circle cx="${W0.x - W0.r + R() * W0.r * 2}" cy="${W0.y - W0.r + R() * W0.r * 2}" r="${2 + R() * 2.5}" fill="${RISO.paper}"/>`;
   } else if (f.night) {
-    tex += `<circle cx="${W0.x + 70}" cy="${W0.y - 58}" r="${W0.r * 0.86}" fill="${RISO.paper}"/>`;     // a crescent
+    tex += `<circle cx="${W0.x + 70 * u}" cy="${W0.y - 58 * u}" r="${W0.r * 0.86}" fill="${RISO.paper}"/>`;     // a crescent
   }
   s += `<g clip-path="url(#${ids.disc})">${tex}</g>`;
   s += `<circle cx="${P0.x.toFixed(1)}" cy="${P0.y.toFixed(1)}" r="${P0.r.toFixed(1)}" fill="${priceInk(f.price)}"${MULTIPLY}/>`;
 
   // the temperature, overprinted across both
   const t = `${int(f.temp)}°`;
-  const size = t.length > 3 ? 196 : 238;
+  const size = (t.length > 3 ? 196 : 238) * u;
   s += T(34, 470, t, { size, weight: 800, fill: '#2c4a86', ls: -6, extra: MULTIPLY });
 
   // the outlook, stacked
   const words = stack(f);
   const S = f.sauna;
-  const room = S.start != null || S.state === 'now' ? 272 : 404;          // clear of the stamp
+  const room = S.start != null || S.state === 'now' ? W - 208 : W - 76;          // clear of the stamp
   const widest = Math.max(...words.map((w) => measure(w, { size: 100, weight: 750, ls: 0.5 }).w));
-  const ws = Math.min(words.length > 2 ? 50 : 58, (room / widest) * 100);
+  const ws = Math.min((words.length > 2 ? 50 : 58) * u ** 0.5, (room / widest) * 100);
   words.forEach((w, i) => { s += T(38, 568 + i * (ws + 2), w, { size: ws, weight: 750, fill: i === 1 ? RISO.blue : RISO.ink, ls: 0.5 }); });
 
   // the sauna window, stamped
   if (S.start != null || S.state === 'now') {
-    const cx = 380, cy = 640, rot = -12;
+    const cx = W - 100, cy = 640, rot = -12;
     const lines = [['SAUNA', 14, 700, 3]];
     if (S.state === 'now') lines.push(['NOW', 24, 800, 0]);
     else { if (S.tomorrow) lines.push(['TOMORROW', 10.5, 700, 2]); lines.push([S.at, 24, 800, 0]); }
@@ -94,8 +95,8 @@ function render(ctx) {
     s += `<g stroke="${RISO.ink}" stroke-width="1" fill="none"><circle cx="${x}" cy="${y}" r="4.5"/><path d="M${x - 8},${y}H${x + 8}M${x},${y - 8}V${y + 8}"/></g>`;
   }
   s += T(38, 760, `${f.place.toUpperCase()} · ${f.time}`, { size: 13, weight: 700, ls: 2.5 })
-     + T(442, 760, f.price != null ? `${num(f.price, 1)} c/kWh now` : '', { size: 13, weight: 500, anchor: 'end' });
-  return frame('portrait', s, { bg: RISO.paper });
+     + T(W - 38, 760, f.price != null ? `${num(f.price, 1)} c/kWh now` : '', { size: 13, weight: 500, anchor: 'end' });
+  return frame(orient, s, { bg: RISO.paper });
 }
 
 export const risoP = {
@@ -110,5 +111,5 @@ export const risoP = {
   blurb: 'The riso poster stood upright and pared down: a disc of sky (its ink and texture — rain '
        + 'streaks, fog bands, a crescent at night) overprinted by a smaller disc that is the price '
        + 'now, the temperature printed over both, the outlook as stacked words, the sauna as a stamp.',
-  render,
+  render, tall: true,
 };

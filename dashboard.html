@@ -62,6 +62,12 @@
       .group.wide .card.portrait { width: 480px; }
       .group.wide .card.landscape { width: 800px; }
       .group.wide .card.sheet-card { width: 100%; max-width: 1290px; }
+      .group.wide .card.device { width: 368px; }
+      .card.device .frame { zoom: .5; }
+      body.only .card.device .frame { zoom: 1; }
+      body.only:has(.e1004) { background: #d9d6cf; padding: 60px; }
+      .group-head a { color: #fff; }
+      .group-head .chips + .chips { margin-top: 6px !important; }
       .sheet-card header { max-width: 800px; }
       .sheet { display: flex; flex-wrap: wrap; gap: 22px 22px; }
       .thumb { display: block; text-decoration: none; }
@@ -109,6 +115,7 @@
       <a href="#prints" data-tab="prints">Prints</a>
       <a href="#bauhaus" data-tab="bauhaus">Bauhaus style</a>
       <a href="#primary" data-tab="primary">Primary colours</a>
+      <a href="#e1004" data-tab="e1004">reTerminal E1004</a>
     </nav>
     <div id="designs"></div>
     <script type="module" src="/src/dashboard/main.js"></script>

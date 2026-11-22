@@ -8,6 +8,7 @@
   font-feature-settings: normal;
 }
 .panel.pp.portrait { width: 480px; height: 800px; }
+.panel.pp.tall { width: 600px; height: 800px; }
 .pp .pp-svg { position: absolute; left: 0; top: 0; }
 .pp .abs { position: absolute; }
 .pp .tnum { font-variant-numeric: tabular-nums; }

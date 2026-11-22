@@ -5,12 +5,12 @@
  * from a hot stove. Beneath it, when to heat: the sauna window and what it
  * costs.
  */
-import { frame, facts, num, euro, smooth } from '../posters/common.js';
+import { frame, facts, num, euro, smooth, SIZE } from '../posters/common.js';
 import { BAU, priceWord, mark, foot, saunaLine, T } from './bauhauskit.js';
 
-const W = 480, H = 800;
-
-function render(ctx) {
+function render(ctx, orient = 'portrait') {
+  const [W, H] = SIZE[orient];
+  const ex = W - 480;                 // the extra width of the 3:4 sheet; 0 on the 480 poster
   const f = facts(ctx);
   const S = f.sauna;
   const st = ctx.temp?.('climate.sauna');
@@ -20,18 +20,20 @@ function render(ctx) {
   let s = `<rect width="${W}" height="${H}" fill="${BAU.cream}"/>`;
 
   // the stove and its stones
-  const B = { x: 150, y: 300, w: 180, h: 400 };
+  // on the wider sheet the stove is broader and its stones bigger, a little left of centre to keep the steam clear of the words
+  const B = { x: 150 + ex / 12, y: 300, w: 180 + ex / 3, h: 400 };
+  const k = B.w / 180;                // the stove's own scale, 1 on the 480 poster
   s += `<rect x="${B.x}" y="${B.y}" width="${B.w}" height="${B.h}" rx="10" fill="${BAU.black}"/>`;
-  s += `<rect x="${B.x + 60}" y="${B.y + B.h - 46}" width="60" height="18" rx="4" fill="${S.state === 'now' || hot ? BAU.red : BAU.cream}"/>`;   // the vent glows when it is time to heat
+  s += `<rect x="${B.x + 60 * k}" y="${B.y + B.h - 46}" width="${60 * k}" height="18" rx="4" fill="${S.state === 'now' || hot ? BAU.red : BAU.cream}"/>`;   // the vent glows when it is time to heat
   const rows = [[0, 4], [1, 3], [2, 4]];
   for (const [r, n] of rows) for (let i = 0; i < n; i++) {
-    const cx = B.x + B.w / 2 + (i - (n - 1) / 2) * 40, cy = B.y + 34 + r * 34;
-    s += `<circle cx="${cx}" cy="${cy}" r="19" fill="${stone}"/>`;
+    const cx = B.x + B.w / 2 + (i - (n - 1) / 2) * 40 * k, cy = B.y + 34 * k + r * 34 * k;
+    s += `<circle cx="${cx}" cy="${cy}" r="${19 * k}" fill="${stone}"/>`;
   }
   // the steam, from a hot stove
-  if (hot) for (let k = 0; k < 3; k++) {
-    const x = B.x + 40 + k * 50, pts = [];
-    for (let y = B.y - 10; y >= 150; y -= 14) pts.push([x + 12 * Math.sin((y / 34) + k), y]);
+  if (hot) for (let j = 0; j < 3; j++) {
+    const x = B.x + (40 + j * 50) * k, pts = [];
+    for (let y = B.y - 10; y >= 150; y -= 14) pts.push([x + 12 * Math.sin((y / 34) + j), y]);
     s += `<path d="${smooth(pts)}" fill="none" stroke="${BAU.black}" stroke-width="7" stroke-linecap="round"/>`;
   }
 
@@ -47,7 +49,7 @@ function render(ctx) {
     'the stones grey while the sauna is cold, mustard as it warms, red when hot · the vent glows when it is time',
     [f.price != null ? `power ${num(f.price, 1)} c/kWh, ${priceWord(f.price)}` : 'no prices yet', f.out.head.toLowerCase()].join(' · '),
   ] });
-  return frame('portrait', s, { bg: BAU.cream });
+  return frame(orient, s, { bg: BAU.cream });
 }
 
 export const kiuasP = {
@@ -55,5 +57,5 @@ export const kiuasP = {
   blurb: 'The sauna stove, a black column with its basket of stones, and the sauna’s own thermometer for a figure: '
        + 'the stones grey while the sauna is cold, mustard as it warms, red when it is hot, with steam rising. Beneath '
        + 'it, when to heat and what it costs.',
-  render,
+  render, tall: true,
 };

@@ -10,7 +10,7 @@
  * Two copies of the same text, one masked by the numeral and one clipped to
  * it, so a character can be half black, half paper where the edge cuts it.
  */
-import { frame, facts, measure, esc, INK, SANS, MONO, pad2, hm, HOUR, uid } from './common.js';
+import { frame, facts, measure, esc, INK, SANS, MONO, pad2, hm, HOUR, uid, SIZE } from './common.js';
 import { kind } from '../../weather.js';
 
 const FS = 13.6, LH = 16, CW = FS * 0.6;      // JetBrains Mono advances 0.6 em
@@ -44,7 +44,7 @@ function hours(f, n) {
 }
 
 function sheet(orient, lines, numeral, ink = INK.red) {
-  const [W, H] = orient === 'portrait' ? [480, 800] : [800, 480];
+  const [W, H] = SIZE[orient];
   const ids = { clip: uid('tc'), mask: uid('tm') };
   const body = (weight, fill) => lines.map((l, i) =>
     `<text x="${4}" y="${(i + 1) * LH - 3.5}" font-family='${MONO}' font-size="${FS}" font-weight="${weight}" fill="${fill}" style="white-space:pre">${esc(l)}</text>`).join('');
@@ -92,17 +92,20 @@ function landscape(ctx) {
   return sheet('landscape', L, g, f.temp < 0 ? INK.blue : INK.red);
 }
 
-function portrait(ctx) {
+function portrait(ctx, orient = 'portrait') {
   const f = facts(ctx);
-  const cols = Math.floor((480 - 8) / CW);
+  const [W] = SIZE[orient];
+  const tall = orient === 'tall';             // 72 columns: room for the city, the chance of rain and a longer bar
+  const cols = Math.floor((W - 8) / CW);
   const sep = '-'.repeat(cols);
+  const light = f.sun ? `  LIGHT ${hm(f.sun.rise)}-${hm(f.sun.set)}` : '';
   const L = [
-    lp(`${up(f.place)} ${f.lat.toFixed(3)}N ${f.lon.toFixed(3)}E  FMI ${f.station.id}`, cols),
-    lp(`${up(f.weekday.slice(0, 3))} ${f.dateFi} ${f.time}  NOW ${t1(f.temp)} C  ${c2(f.price)} C`, cols),
+    lp(`${up(f.place)}${tall ? ` ${up(f.city)}` : ''} ${f.lat.toFixed(3)}N ${f.lon.toFixed(3)}E  FMI ${f.station.id}`, cols),
+    lp(`${up(f.weekday.slice(0, 3))} ${f.dateFi} ${f.time}  NOW ${t1(f.temp)} C  ${c2(f.price)} C${tall ? light : ''}`, cols),
     sep,
-    lp('HH   TEMP  MM/H WIND SKY     C/KWH  1 # = 2 C', cols),
+    lp(tall ? 'HH   TEMP   POP  MM/H WIND SKY     C/KWH  1 # = 2 C' : 'HH   TEMP  MM/H WIND SKY     C/KWH  1 # = 2 C', cols),
   ];
-  const room = cols - 36;
+  const room = cols - (tall ? 42 : 36), perChar = 2;
   let last = new Date(f.now).getDate();
   for (const h of hours(f, 42)) {
     const d = new Date(h.t);
@@ -111,8 +114,9 @@ function portrait(ctx) {
       L.push(lp(`-- ${up(d.toLocaleDateString('en-GB', { weekday: 'short' }))} ${d.getDate()}.${d.getMonth() + 1}. ${sep}`, cols));
     }
     const r = h.r;
-    L.push(lp(`${pad2(d.getHours())}  ${rp(t1(r?.temp), 6)}  ${rp(r ? r.mm.toFixed(1) : '-', 4)} ${rp(r?.wind != null ? Math.round(r.wind) : '-', 4)} `
-      + `${lp(r ? SKY6[kind(r.sym)] : '-', 7)} ${rp(c2(h.price), 6)}  ${bar(h.price, 2, room)}`, cols));
+    const pop = tall ? `  ${rp(r ? `${Math.round(r.pop ?? 0)}%` : '-', 4)}` : '';
+    L.push(lp(`${pad2(d.getHours())}  ${rp(t1(r?.temp), 6)}${pop}  ${rp(r ? r.mm.toFixed(1) : '-', 4)} ${rp(r?.wind != null ? Math.round(r.wind) : '-', 4)} `
+      + `${lp(r ? SKY6[kind(r.sym)] : '-', 7)} ${rp(c2(h.price), 6)}  ${bar(h.price, perChar, room)}`, cols));
   }
   const S = f.sauna;
   while (L.length > 47) L.pop();
@@ -123,14 +127,15 @@ function portrait(ctx) {
   const r = Math.round(f.temp);
   const digits = Number.isFinite(r) ? String(Math.abs(r)).split('') : ['–'];
   const g = [];
-  if (r < 0) g.push(fitGlyph('−', 40, 30, 180, 90));
-  if (digits.length === 1) g.push(fitGlyph(digits[0], 20, r < 0 ? 140 : 60, 440, r < 0 ? 620 : 680));
+  const gw = W - 40;
+  if (r < 0) g.push(fitGlyph('−', 40, 30, 180 * (W / 480), 90));
+  if (digits.length === 1) g.push(fitGlyph(digits[0], 20, r < 0 ? 140 : 60, gw, r < 0 ? 620 : 680));
   else {
     const top = r < 0 ? 130 : 30;
     const hh = (770 - top) / 2;
-    g.push(fitGlyph(digits[0], 20, top, 440, hh - 10), fitGlyph(digits[1], 20, top + hh + 10, 440, hh - 10));
+    g.push(fitGlyph(digits[0], 20, top, gw, hh - 10), fitGlyph(digits[1], 20, top + hh + 10, gw, hh - 10));
   }
-  return sheet('portrait', L, g, f.temp < 0 ? INK.blue : INK.red);
+  return sheet(orient, L, g, f.temp < 0 ? INK.blue : INK.red);
 }
 
 const BLURB = 'The raw hourly forecast and prices, printed edge to edge in a monospace like line-printer '
@@ -138,4 +143,4 @@ const BLURB = 'The raw hourly forecast and prices, printed edge to edge in a mon
   + 'reads as the number, up close as the table — hour, temperature, rain, wind, sky, price, a bar.';
 
 export const tableL = { id: 'pz-table-l', orient: 'landscape', name: 'Table · landscape', blurb: BLURB, render: landscape };
-export const tableP = { id: 'pz-table-p', orient: 'portrait', name: 'Table · portrait', blurb: BLURB, render: portrait };
+export const tableP = { id: 'pz-table-p', orient: 'portrait', name: 'Table · portrait', blurb: BLURB, render: portrait, tall: true };

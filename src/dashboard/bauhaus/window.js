@@ -8,12 +8,12 @@
  * and a bare outline when it is not, with the living room's temperature on
  * it. The outdoor figure hangs on the wall above.
  */
-import { frame, facts, num, euro, rng, hash } from '../posters/common.js';
+import { frame, facts, num, euro, rng, hash, SIZE } from '../posters/common.js';
 import { BAU, skyInk, priceWord, mark, foot, saunaLine, T } from './bauhauskit.js';
 
-const W = 480, H = 800;
-
-function render(ctx) {
+function render(ctx, orient = 'portrait') {
+  const [W, H] = SIZE[orient];
+  const e = W - 480;                                               // the extra width of a 3:4 sheet
   const f = facts(ctx);
   const S = f.sauna;
   const R = rng(hash(`${f.d.toDateString()}${f.scenario?.id ?? ''}`));
@@ -24,7 +24,7 @@ function render(ctx) {
   let s = `<rect width="${W}" height="${H}" fill="${BAU.cream}"/>`;
 
   // the frame and its four panes
-  const F = { x: 88, y: 150, w: 304, h: 330, bar: 16 };
+  const F = { x: 88 + e / 10, y: 150, w: 304 + e * 0.8, h: 330 + e / 6, bar: 16 };   // a wider sheet, a picture window
   s += `<rect x="${F.x}" y="${F.y}" width="${F.w}" height="${F.h}" fill="${BAU.black}"/>`;
   const pw = (F.w - 3 * F.bar) / 2, ph = (F.h - 3 * F.bar) / 2;
   const panes = [[0, 0], [1, 0], [0, 1], [1, 1]].map(([i, j]) => ({ x: F.x + F.bar + i * (pw + F.bar), y: F.y + F.bar + j * (ph + F.bar) }));
@@ -32,15 +32,15 @@ function render(ctx) {
   // what is on the glass
   const wet = ['rain', 'showers', 'thunder', 'sleet'].includes(k);
   for (const p of panes) {
-    if (wet) for (let i = 0; i < 5; i++) { const x = p.x + 12 + i * (pw / 5) + R() * 10, y0 = p.y + R() * 40; s += `<line x1="${x.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${(x - 14).toFixed(1)}" y2="${(y0 + 60 + R() * 60).toFixed(1)}" stroke="${BAU.white}" stroke-width="3" stroke-linecap="round"/>`; }
-    if (k === 'snow') for (let i = 0; i < 9; i++) s += `<circle cx="${(p.x + 10 + R() * (pw - 20)).toFixed(1)}" cy="${(p.y + 10 + R() * (ph - 20)).toFixed(1)}" r="4" fill="${BAU.black}"/>`;
+    if (wet) for (let i = 0, n = Math.round(pw / 27); i < n; i++) { const x = p.x + 12 + i * (pw / n) + R() * 10, y0 = p.y + R() * 40; s += `<line x1="${x.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${(x - 14).toFixed(1)}" y2="${(y0 + 60 + R() * 60).toFixed(1)}" stroke="${BAU.white}" stroke-width="3" stroke-linecap="round"/>`; }
+    if (k === 'snow') for (let i = 0, n = Math.round(9 * pw / 128); i < n; i++) s += `<circle cx="${(p.x + 10 + R() * (pw - 20)).toFixed(1)}" cy="${(p.y + 10 + R() * (ph - 20)).toFixed(1)}" r="4" fill="${BAU.black}"/>`;
     if (k === 'fog') for (let y = p.y + 22; y < p.y + ph; y += 30) s += `<rect x="${p.x}" y="${y}" width="${pw}" height="10" fill="${BAU.cream}"/>`;
   }
   if (f.night && (k === 'clear' || k === 'partly')) s += `<circle cx="${panes[1].x + pw * 0.62}" cy="${panes[1].y + ph * 0.4}" r="26" fill="${BAU.cream}"/>`;
   s += `<rect x="${F.x - 18}" y="${F.y + F.h}" width="${F.w + 36}" height="14" fill="${BAU.black}"/>`;   // the sill
 
   // the radiator beneath
-  const bars = 8, bw = 22, gap = 12, rx = W / 2 - (bars * bw + (bars - 1) * gap) / 2, ry = 540, rh = 130;
+  const bars = 8 + e / 60, bw = 22, gap = 12, rx = W / 2 - (bars * bw + (bars - 1) * gap) / 2, ry = 540 + e / 6, rh = 130;
   for (let i = 0; i < bars; i++) {
     const x = rx + i * (bw + gap);
     s += heating ? `<rect x="${x}" y="${ry}" width="${bw}" height="${rh}" rx="11" fill="${BAU.red}"/>`
@@ -59,7 +59,7 @@ function render(ctx) {
     'the sky in the panes · the radiator red while the flat is heating',
     [f.price != null ? `power ${num(f.price, 1)} c/kWh, ${priceWord(f.price)}` : 'no prices yet', `${saunaLine(S)}${S.cost != null ? `, about ${euro(S.cost)}` : ''}`].join(' · '),
   ] });
-  return frame('portrait', s, { bg: BAU.cream });
+  return frame(orient, s, { bg: BAU.cream });
 }
 
 export const windowP = {
@@ -70,5 +70,5 @@ export const windowP = {
   blurb: 'The room’s own view: a black window frame with the sky in its four panes — mustard sun, blue rain with streaks '
        + 'on the glass, white snow, grey fog, black night with a moon — and the radiator beneath, red while the flat is '
        + 'heating, with the living room’s temperature on it.',
-  render,
+  render, tall: true,
 };

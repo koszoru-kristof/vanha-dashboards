@@ -1,0 +1,39 @@
+/*
+ * The reTerminal E1004 mock-up (device.js): a thin black aluminium frame, a
+ * bright white mat, and the panel's warmer, greyer white inside the window.
+ */
+.frame.device, .frame.exact { width: auto; height: auto; background: none; box-shadow: none; }
+.e1004 {
+  position: relative; box-sizing: border-box;
+  padding: var(--fr);
+  /* brushed black aluminium: a faint lift on the top and left faces */
+  background: linear-gradient(160deg, #3a3d41 0%, #1b1d20 22%, #141518 70%, #24272b 100%);
+  border-radius: 2px;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.06),
+    0 calc(var(--depth) * .18) calc(var(--depth) * .55) rgba(0,0,0,.42),
+    0 2px 4px rgba(0,0,0,.35);
+}
+.e1004-mat {
+  position: relative; width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  background: #fbfbf8;
+  /* the frame's lip throws a little shadow onto the mat */
+  box-shadow: inset 0 3px 5px rgba(0,0,0,.28), inset 0 0 2px rgba(0,0,0,.25);
+}
+.e1004.mat-none .e1004-mat { background: #18191c; box-shadow: none; }
+.e1004-window {
+  position: relative; overflow: hidden; flex: none;
+  /* the mat's cut edge, then the panel just behind it */
+  box-shadow: 0 0 0 1px rgba(0,0,0,.10), inset 0 1px 3px rgba(0,0,0,.30);
+}
+.e1004.mat-none .e1004-window { box-shadow: none; }
+.e1004-pixels { position: relative; overflow: hidden; transform-origin: 0 0; }
+.e1004-poster { position: absolute; left: 50%; top: 50%; transform-origin: 50% 50%; }
+.e1004-poster > .panel { position: relative; }
+/* the window's shadow sits above the poster, as the mat sits above the panel */
+.e1004-window::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  box-shadow: inset 0 2px 3px rgba(0,0,0,.22), inset 0 0 1px rgba(0,0,0,.3);
+}
+.e1004.mat-none .e1004-window::after { display: none; }

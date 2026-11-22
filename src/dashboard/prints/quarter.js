@@ -9,20 +9,21 @@
  * — and the upright lines count the hours until it opens. The temperature is
  * stacked one glyph to a line at the foot, like a signature.
  */
-import { frame, facts, int, num, euro, hm, HOUR } from '../posters/common.js';
+import { frame, SIZE, facts, int, num, euro, hm, HOUR } from '../posters/common.js';
 import { PRINT, skyInk, priceInk, priceWord, degrees, level, T, wrap } from './printkit.js';
 
-const W = 480, H = 800;
 const small = { size: 10.5, weight: 500, fill: PRINT.black };
 
-function render(ctx) {
+function render(ctx, orient = 'portrait') {
+  const [W, H] = SIZE[orient];
+  const ex = W - 480;                                        // the tall sheet's extra width
   const f = facts(ctx);
   const S = f.sauna;
   const sky = skyInk(f.sky ?? 'cloudy', { night: f.night, temp: f.temp });
   let s = `<rect width="${W}" height="${H}" fill="${PRINT.grey}"/>`;
 
   // the title: the place in bold, the day light
-  s += `<text x="${W / 2}" y="72" font-family='"Jost Variable", Jost, Futura, sans-serif' font-size="34" text-anchor="middle" fill="${PRINT.black}">`
+  s += `<text x="${W / 2}" y="72" font-family='"Jost Variable", Jost, Futura, sans-serif' font-size="${34 + ex / 20}" text-anchor="middle" fill="${PRINT.black}">`
      + `<tspan font-weight="700">${f.place}</tspan><tspan font-weight="300"> ${f.weekday}</tspan></text>`;
 
   // three columns of small type under it
@@ -32,37 +33,38 @@ function render(ctx) {
     S.state === 'now' ? `Sauna now${S.cost != null ? `, about ${euro(S.cost)}` : ''}.`
       : S.start != null ? `Sauna ${S.tomorrow ? 'tomorrow ' : ''}at ${S.at}${S.cost != null ? `, about ${euro(S.cost)}` : ''}.` : `${S.line}.`,
   ];
-  cols.forEach((c, i) => wrap(c, 124, small).slice(0, 3).forEach((l, j) => { s += T(40 + i * 150, 112 + j * 14, l, small); }));
+  cols.forEach((c, i) => wrap(c, 124 + ex * 0.3, small).slice(0, 3).forEach((l, j) => { s += T(40 + i * (150 + ex / 3), 112 + j * 14, l, small); }));
 
   // the sky: a quarter-circle, its corner at the lower left
-  const Q = { x: 158, y: 440, r: 184 };
+  const Q = { x: 158 + ex * 0.3, y: 440, r: 184 + ex * 0.2 };
   s += `<path d="M${Q.x},${Q.y} L${Q.x},${Q.y - Q.r} A${Q.r},${Q.r} 0 0 1 ${Q.x + Q.r},${Q.y} Z" fill="${sky}"/>`;
 
   // power now, and at the sauna hour
-  const big = 40 + 52 * level(f.price);
-  s += `<circle cx="${350 + (92 - big) * 0.3}" cy="${248 - (92 - big) * 0.4}" r="${big.toFixed(1)}" fill="${priceInk(f.price)}"/>`;
+  const big = (40 + 52 * level(f.price)) * (1 + ex / 1000);
+  s += `<circle cx="${350 + ex * 0.85 + (92 - big) * 0.3}" cy="${248 - (92 - big) * 0.4}" r="${big.toFixed(1)}" fill="${priceInk(f.price)}"/>`;
   if (S.avg != null) {
     const r = 16 + 34 * level(S.avg);
-    s += `<circle cx="158" cy="${(208 - r * 0.2).toFixed(1)}" r="${r.toFixed(1)}" fill="${priceInk(S.avg)}"/>`;
+    s += `<circle cx="${Q.x}" cy="${(208 - ex * 0.2 - r * 0.2).toFixed(1)}" r="${r.toFixed(1)}" fill="${priceInk(S.avg)}"/>`;
   }
 
   // the pair of rules
-  s += `<rect x="112" y="286" width="90" height="6" fill="${PRINT.black}"/><rect x="112" y="306" width="90" height="6" fill="${PRINT.black}"/>`;
+  const rx = 112 + ex * 0.3, rw = 90 + ex * 0.1;
+  s += `<rect x="${rx}" y="286" width="${rw}" height="6" fill="${PRINT.black}"/><rect x="${rx}" y="306" width="${rw}" height="6" fill="${PRINT.black}"/>`;
 
   // the sauna's doorway, and the hours until it opens
   const ahead = S.start != null || S.state === 'now';
   if (ahead) {
-    const A = { x: 160, top: 358, w: 176, leg: 44, foot: 542 };
+    const A = { x: 160 + ex * 0.3, top: 358 - ex * 0.2, w: 176 + ex * 0.2, leg: 44 + ex * 0.05, foot: 542 };
     const ro = A.w / 2, ri = ro - A.leg;
     s += `<path d="M${A.x - ro},${A.foot} L${A.x - ro},${A.top + ro} A${ro},${ro} 0 0 1 ${A.x + ro},${A.top + ro} L${A.x + ro},${A.foot} `
        + `L${A.x + ri},${A.foot} L${A.x + ri},${A.top + ro} A${ri},${ri} 0 0 0 ${A.x - ri},${A.top + ro} L${A.x - ri},${A.foot} Z" fill="${PRINT.black}"/>`;
     const hours = S.state === 'now' ? 0 : Math.max(1, Math.min(8, Math.round((S.start - f.now) / HOUR)));
-    for (let i = 0; i < hours; i++) s += `<rect x="${268 + i * 20}" y="${392}" width="4" height="${250}" fill="${PRINT.black}"/>`;
-    s += T(268, 664, S.state === 'now' ? 'SAUNA NOW' : `SAUNA ${S.tomorrow ? 'TOMORROW ' : ''}${S.at} · ${hours} H`, { size: 9.5, weight: 700, ls: 1.4 });
+    for (let i = 0; i < hours; i++) s += `<rect x="${268 + ex * 0.55 + i * (20 + ex / 20)}" y="${392}" width="4" height="${250}" fill="${PRINT.black}"/>`;
+    s += T(268 + ex * 0.55, 664, S.state === 'now' ? 'SAUNA NOW' : `SAUNA ${S.tomorrow ? 'TOMORROW ' : ''}${S.at} · ${hours} H`, { size: 9.5, weight: 700, ls: 1.4 });
   }
 
   // the temperature, stacked at the foot
-  [...`${int(f.temp)}°`].forEach((g, i) => { s += T(34, 566 + i * 30, g, { size: 30, weight: 700, ls: -0.5 }); });
+  [...`${int(f.temp)}°`].forEach((g, i) => { s += T(34, 566 + i * (30 + ex / 20), g, { size: 30 + ex / 20, weight: 700, ls: -0.5 }); });
 
   // small paragraphs down the right
   const paras = [
@@ -72,8 +74,8 @@ function render(ctx) {
     `FMI ${f.station.short}, Nord Pool FI. ${f.time}.`,
   ].filter(Boolean);
   let y = 688;
-  for (const p of paras) { for (const l of wrap(p, 200, small).slice(0, 2)) { s += T(W - 40, y, l, { ...small, anchor: 'end' }); y += 13; } y += 6; }
-  return frame('portrait', s, { bg: PRINT.grey });
+  for (const p of paras) { for (const l of wrap(p, 200 + ex / 2, small).slice(0, 2)) { s += T(W - 40, y, l, { ...small, anchor: 'end' }); y += 13; } y += 6; }
+  return frame(orient, s, { bg: PRINT.grey });
 }
 
 export const quarterP = {
@@ -81,5 +83,5 @@ export const quarterP = {
   blurb: 'A geometric composition on warm grey. The quarter-circle is the sky in its ink; the large circle '
        + 'is power now, coloured and sized by the price, the small one the price at the sauna hour; the black '
        + 'arch is the sauna’s doorway, standing while a window is ahead, with the hours until it opens as upright lines.',
-  render,
+  render, tall: true,
 };

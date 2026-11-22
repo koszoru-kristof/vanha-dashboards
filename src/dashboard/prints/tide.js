@@ -8,12 +8,12 @@
  * inverts across it, so it reads on both fields; the facts are set in the
  * corners in whichever ink reads on that field.
  */
-import { frame, facts, esc, int, num, euro, uid, hash, rng, SANS, smooth } from '../posters/common.js';
+import { frame, SIZE, facts, esc, int, num, euro, uid, hash, rng, SANS, smooth } from '../posters/common.js';
 import { PRINT, skyInk, priceInk, priceWord, onInk, T } from './printkit.js';
 
-const W = 480, H = 800;
-
-function render(ctx) {
+function render(ctx, orient = 'portrait') {
+  const [W, H] = SIZE[orient];
+  const ex = W - 480;                                        // the tall sheet's extra width
   const f = facts(ctx);
   const S = f.sauna;
   const R = rng(hash(`${f.d.toDateString()}${f.scenario?.id ?? ''}`));
@@ -36,8 +36,8 @@ function render(ctx) {
 
   // the numeral on the line, inverting across it
   const str = `${int(f.temp)}°`;
-  const size = str.length > 3 ? 190 : 230;
-  const ny = Math.max(60 + size * 0.72, Math.min(H - 60, line + size * 0.36));
+  const size = (str.length > 3 ? 190 : 230) * (1 + ex / 600);
+  const ny = Math.max(60 + ex * 0.4 + size * 0.72, Math.min(H - 60 - ex * 0.3, line + size * 0.36));   // the bigger tall numeral keeps clear of the corners
   const numeral = (fill) => `<text x="${W / 2}" y="${ny.toFixed(0)}" font-family='${SANS}' font-size="${size}" font-weight="800" letter-spacing="-6" text-anchor="middle" fill="${fill}">${esc(str)}</text>`;
   s += numeral(onInk(power)) + (onInk(sky) === onInk(power) ? '' : `<g clip-path="url(#${ids.up})">${numeral(onInk(sky))}</g>`);
 
@@ -49,7 +49,7 @@ function render(ctx) {
   s += T(40, H - 62, f.price != null ? `POWER ${num(f.price, 1)} C/KWH · ${priceWord(f.price).toUpperCase()}` : 'NO PRICES YET', { size: 12, weight: 700, ls: 1.6, fill: down })
      + T(40, H - 40, S.state === 'now' ? `Sauna now${S.cost != null ? `, about ${euro(S.cost)}` : ''}`
         : S.start != null ? `Sauna ${S.tomorrow ? 'tomorrow ' : ''}at ${S.at}${S.cost != null ? `, about ${euro(S.cost)}` : ''}` : S.line, { size: 13, weight: 500, fill: down });
-  return frame('portrait', s, { bg: sky });
+  return frame(orient, s, { bg: sky });
 }
 
 export const tideP = {
@@ -57,5 +57,5 @@ export const tideP = {
   blurb: 'The sheet floods to the temperature: two flat fields meet at a swaying waterline that stands as high '
        + 'as the temperature (−25 °C at the foot, +30 at the head). Above it the sky in its ink, below it the '
        + 'price in its colour; the numeral sits on the line and inverts across it.',
-  render,
+  render, tall: true,
 };

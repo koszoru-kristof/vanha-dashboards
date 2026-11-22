@@ -8,10 +8,9 @@
  * figures are the three answers — outdoor temperature, the price now, when
  * to run the sauna — each captioned like a form field.
  */
-import { frame, facts, text, measure, INK, num, pad2, hm, euro } from './common.js';
+import { frame, facts, text, measure, INK, num, pad2, hm, euro, SIZE } from './common.js';
 import { modText, modWidth } from './modfont.js';
 
-const W = 480, H = 800;
 const PAPER = INK.paper, RED = INK.red, BLACK = INK.black;
 
 /* A small-print block: a bullet (dot or pill), then up to three lines,
@@ -47,7 +46,10 @@ function simplify(pts, tol) {
   return fd <= tol ? [a, b] : [...simplify(pts.slice(0, far + 1), tol).slice(0, -1), ...simplify(pts.slice(far), tol)];
 }
 
-function render(ctx) {
+function render(ctx, orient = 'portrait') {
+  const [W, H] = SIZE[orient];
+  // the tall sheet: small print spread over the width, the figures and the ring a size up
+  const u = (W - 48) / 432, cx0 = (x) => 24 + (x - 24) * u;
   const f = facts(ctx);
   let s = `<rect width="${W}" height="${H}" fill="${INK.yellow}"/>`;
 
@@ -65,7 +67,7 @@ function render(ctx) {
   }
 
   // the day's clock: a thin ring, daylight heavy, a dot at now (noon at the top, like the sun)
-  const cx = 342, cy = 596, r = 96;
+  const cx = W - 138, cy = 596 + (W - 480) / 12, r = 96 + (W - 480) / 12;
   const ang = (t) => ((new Date(t).getHours() + new Date(t).getMinutes() / 60) / 24) * 2 * Math.PI + Math.PI / 2;
   const pt = (a, rr = r) => [cx + rr * Math.cos(a), cy + rr * Math.sin(a)];
   s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${RED}" stroke-width="3"/>`;
@@ -86,7 +88,7 @@ function render(ctx) {
     ...(saunaTime ? [[`${S.state === 'now' ? 'SAUNA · NOW' : S.tomorrow ? 'SAUNA · TOMORROW' : S.state === 'later' ? 'SAUNA · LEAST BAD' : 'SAUNA · TODAY'}`
       + `${S.cost != null ? ` · ≈ ${euro(S.cost).toUpperCase()}` : ''}`, saunaTime]] : []),
   ];
-  const gh = 94;
+  const gh = 94 + (W - 480) / 12;
   rows.forEach(([cap, val], i) => {
     const y = 128 + i * 140;
     const h = Math.min(gh, ((W - 44) / modWidth(val, 10)) * 10);
@@ -95,14 +97,14 @@ function render(ctx) {
     s += modText(val, { x: 22, y, h, color: PAPER });
   });
   // small print, top and bottom
-  s += block(24, 40, [`${f.place}, ${f.city}`, `FMI station ${f.station.id}`, `Updated ${f.time}`], 'dot', 118)
-     + block(166, 40, [`${f.weekday.slice(0, 3)} ${f.dayMonth}`, f.rh != null ? `RH ${Math.round(f.rh)} % · ${num(f.wind, 0)} m/s` : '', f.range ? `Today ${num(f.range.min)} to ${num(f.range.max)}°` : ''], 'pill', 116)
-     + block(322, 40, [f.out.head, f.out.sub?.split(' · ')[0]], 'pill', 124);
+  s += block(24, 40, [`${f.place}, ${f.city}`, `FMI station ${f.station.id}`, `Updated ${f.time}`], 'dot', 118 * u)
+     + block(cx0(166), 40, [`${f.weekday.slice(0, 3)} ${f.dayMonth}`, f.rh != null ? `RH ${Math.round(f.rh)} % · ${num(f.wind, 0)} m/s` : '', f.range ? `Today ${num(f.range.min)} to ${num(f.range.max)}°` : ''], 'pill', 116 * u)
+     + block(cx0(322), 40, [f.out.head, f.out.sub?.split(' · ')[0]], 'pill', 124 * u);
   const st = f.stats;
-  s += block(24, 730, [st ? `High ${num(st.max.price, 1)} c at ${pad2(st.max.hour)}` : 'No prices', st ? `Low ${num(st.min.price, 1)} c at ${pad2(st.min.hour)}` : '', 'c/kWh incl. VAT'], 'dot', 118)
-     + block(166, 730, [f.sun ? `Light ${hm(f.sun.rise)}–${hm(f.sun.set)}` : 'Light –', `Sauna 2 h, ${num(f.kwh, 1)} kWh`, 'incl. transfer, tax'], 'pill', 116);
-  s += text(456, 786, 'Weather + Watts', { size: 21, weight: 600, fill: PAPER, anchor: 'end' });
-  return frame('portrait', s);
+  s += block(24, 730, [st ? `High ${num(st.max.price, 1)} c at ${pad2(st.max.hour)}` : 'No prices', st ? `Low ${num(st.min.price, 1)} c at ${pad2(st.min.hour)}` : '', 'c/kWh incl. VAT'], 'dot', 118 * u)
+     + block(cx0(166), 730, [f.sun ? `Light ${hm(f.sun.rise)}–${hm(f.sun.set)}` : 'Light –', `Sauna 2 h, ${num(f.kwh, 1)} kWh`, 'incl. transfer, tax'], 'pill', 116 * u);
+  s += text(W - 24, 786, 'Weather + Watts', { size: 21 * u, weight: 600, fill: PAPER, anchor: 'end' });
+  return frame(orient, s);
 }
 
 export const moduleP = {
@@ -110,5 +112,5 @@ export const moduleP = {
   blurb: 'After the Mode + Module poster: ochre sheet, three figures stacked in a drawn modular '
        + 'face — outdoor, price now, sauna time — with thin red geometry that is data: the line '
        + 'is today’s price hour by hour, the ring is the day’s clock with daylight drawn heavy.',
-  render,
+  render, tall: true,
 };

@@ -8,15 +8,15 @@
  * midnight at the top and noon at the foot. The temperature is written
  * beneath in a light italic; the day in a few small lines.
  */
-import { frame, facts, esc, int, num, euro } from '../posters/common.js';
+import { frame, SIZE, facts, esc, int, num, euro } from '../posters/common.js';
 import { PRINT, DISPLAY, skyInk, priceWord, level, T } from './printkit.js';
 
-const W = 480, H = 800;
-
-function render(ctx) {
+function render(ctx, orient = 'portrait') {
+  const [W, H] = SIZE[orient];
+  const ex = W - 480;                                        // the tall sheet's extra width
   const f = facts(ctx);
   const S = f.sauna;
-  const C = { x: 240, y: 300, r: 178 };
+  const C = { x: W / 2, y: 300 - ex / 5, r: 178 + ex / 8 };     // tall: a larger disc, raised so the moon's orbit keeps its foot
   const sky = skyInk(f.sky ?? 'cloudy', { night: f.night, temp: f.temp });
   const cover = level(f.price);
   const d = C.r * (2 - 1.82 * cover);                              // the shadow's centre, from the disc's
@@ -37,7 +37,7 @@ function render(ctx) {
 
   // the temperature, and the day
   const t = `${int(f.temp)}°`;
-  s += `<text x="${W / 2}" y="640" font-family='${DISPLAY}' font-size="${t.length > 3 ? 120 : 140}" font-weight="300" font-style="italic" text-anchor="middle" fill="${PRINT.black}" style="font-variation-settings:'SOFT' 100">${esc(t)}</text>`;
+  s += `<text x="${W / 2}" y="640" font-family='${DISPLAY}' font-size="${(t.length > 3 ? 120 : 140) + ex / 12}" font-weight="300" font-style="italic" text-anchor="middle" fill="${PRINT.black}" style="font-variation-settings:'SOFT' 100">${esc(t)}</text>`;
   const lines = [
     `${f.place}, ${f.weekday} ${f.dayMonth}, ${f.time}`,
     `${f.out.head}${f.price != null ? ` · power ${num(f.price, 1)} c/kWh, ${priceWord(f.price)}` : ''}`,
@@ -46,7 +46,7 @@ function render(ctx) {
   ];
   lines.forEach((l, i) => { s += T(W / 2, 692 + i * 21, l, { size: 13, weight: 500, anchor: 'middle' }); });
   s += T(W / 2, 768, 'THE PRICE ECLIPSES THE DAY · THE GREEN MOON IS THE SAUNA HOUR', { size: 8.5, weight: 700, ls: 1.6, anchor: 'middle', fill: '#8a8a8e' });
-  return frame('portrait', s, { bg: PRINT.paper });
+  return frame(orient, s, { bg: PRINT.paper });
 }
 
 export const eclipseP = {
@@ -54,5 +54,5 @@ export const eclipseP = {
   blurb: 'The price eclipses the day: one disc in the sky’s ink, and a disc of paper sliding across it by as '
        + 'much as power costs — the whole disc when cheap, a thin crescent when dear. A small green moon circles '
        + 'it at the sauna hour, midnight at the top, noon at the foot.',
-  render,
+  render, tall: true,
 };

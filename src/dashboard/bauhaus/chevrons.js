@@ -4,12 +4,12 @@
  * now, up in red when they are dearer, and lying as flat bars in black when
  * nothing much changes. The figures are set small beneath.
  */
-import { frame, facts, num, euro } from '../posters/common.js';
+import { frame, facts, num, euro, SIZE } from '../posters/common.js';
 import { BAU, priceWord, mark, foot, saunaLine, T } from './bauhauskit.js';
 
-const W = 480, H = 800;
-
-function render(ctx) {
+function render(ctx, orient = 'portrait') {
+  const [W, H] = SIZE[orient];
+  const ex = W - 480;                 // the extra width of the 3:4 sheet; 0 on the 480 poster
   const f = facts(ctx);
   const S = f.sauna;
   const next = f.next.slice(1, 7).map((p) => p.price);
@@ -18,7 +18,7 @@ function render(ctx) {
   const dir = Math.abs(delta) < 1.5 ? 0 : delta > 0 ? -1 : 1;                 // -1 up (dearer), 1 down (cheaper)
   const ink = dir === 0 ? BAU.black : dir > 0 ? BAU.green : BAU.red;
   let s = `<rect width="${W}" height="${H}" fill="${BAU.cream}"/>`;
-  const n = 6, cx = 240, half = 170, rise = 110, pitch = 56, sw = 24;
+  const n = 6, cx = W / 2, half = 170 + ex * 0.35, rise = 110, pitch = 56, sw = 24 + ex / 40;   // broader and bolder on the wider sheet
   for (let i = 0; i < n; i++) {
     const y = 210 + i * pitch;
     const tip = dir === 0 ? y : y + dir * rise;
@@ -37,12 +37,12 @@ function render(ctx) {
     'down in green when the coming hours are cheaper, up in red when dearer, flat when steady',
     `${saunaLine(S)}${S.cost != null ? `, about ${euro(S.cost)}` : ''} · ${f.price != null ? priceWord(f.price) : ''}`,
   ] });
-  return frame('portrait', s, { bg: BAU.cream });
+  return frame(orient, s, { bg: BAU.cream });
 }
 
 export const chevronsP = {
   id: 'bh-chevrons-p', orient: 'portrait', name: 'Chevrons · portrait',
   blurb: 'Where the price of power is heading, as a stack of nested chevrons: pointing down in green when the coming '
        + 'hours are cheaper than now, up in red when they are dearer, and lying as flat black bars when nothing much changes.',
-  render,
+  render, tall: true,
 };

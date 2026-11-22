@@ -9,18 +9,18 @@
  * top edge and comes back in at the other side, as on a printed wrap; two
  * small blocks of type at the foot carry the facts.
  */
-import { frame, facts, esc, int, num, euro, uid, hash, measure, SANS } from '../posters/common.js';
+import { frame, SIZE, facts, esc, int, num, euro, uid, hash, measure, SANS } from '../posters/common.js';
 import { PRINT, priceInk, priceWord, onInk, stripes, fitWidth, T } from './printkit.js';
 
-const W = 480, H = 800;
-
-function render(ctx) {
+function render(ctx, orient = 'portrait') {
+  const [W, H] = SIZE[orient];
+  const ex = W - 480;                                        // the tall sheet's extra width
   const f = facts(ctx);
   const ground = priceInk(f.price);
   const ink = onInk(ground);
   const glyphs = [...int(f.temp)];
   const n = glyphs.length;
-  const size = n >= 3 ? 400 : n === 2 ? 490 : 580;
+  const size = (n >= 3 ? 400 : n === 2 ? 490 : 580) * (1 + ex / 800);   // the tall sheet takes bigger glyphs
   const ids = { a: uid('spa'), b: uid('spb'), wave: uid('spw') };
   const seed = hash(`${f.d.toDateString()}${f.scenario?.id ?? ''}`) % 997;
   const wind = Number.isFinite(f.wind) ? f.wind : 3;
@@ -37,9 +37,9 @@ function render(ctx) {
   s += `<rect width="${W}" height="${H}" fill="${ground}"/>`;
 
   // the glyphs, stepping down the sheet; an echo in paper stripes behind each black one
-  const x0 = n >= 3 ? -34 : n === 2 ? 14 : 70;
-  const y0 = n >= 3 ? 430 : n === 2 ? 480 : 640;
-  const dx = size * 0.34, dy = size * 0.35;
+  const x0 = (n >= 3 ? -34 : n === 2 ? 14 : 70) + ex * (n === 1 ? 0.45 : 0.1);
+  const y0 = n >= 3 ? 430 : n === 2 ? 480 + ex / 2 : 640;     // two glyphs: drop so the taller first one clears the place
+  const dx = size * (0.34 + ex / 2000), dy = size * 0.35;
   const glyph = (g, x, y, pat) => `<text x="${x.toFixed(0)}" y="${y.toFixed(0)}" font-family='${SANS}' font-size="${size}" font-weight="800" fill="url(#${pat})">${esc(g)}</text>`;
   let cascade = '';
   glyphs.forEach((g, i) => {
@@ -51,9 +51,9 @@ function render(ctx) {
 
   // the place, wrapped round the top edge
   const place = f.place.toUpperCase();
-  const ps = { size: Math.min(62, fitWidth(place, 400, { weight: 700, ls: 6 })), weight: 700, ls: 6 };
+  const ps = { size: Math.min(62, fitWidth(place, W - 80, { weight: 700, ls: 6 })), weight: 700, ls: 6 };
   const pw = measure(place, ps).w + ps.ls;
-  const seen = 176;                                          // the cut falls through the O
+  const seen = 176 + ex * 0.4;                                        // the cut falls through the O
   const fixed = ` textLength="${pw.toFixed(1)}" lengthAdjust="spacing"`;   // both halves the measured width, so they join
   s += T(W - seen, 78, place, { ...ps, fill: ink, extra: fixed }) + T(-(pw - seen), 78, place, { ...ps, fill: ink, extra: fixed });
 
@@ -65,7 +65,7 @@ function render(ctx) {
   s += block(40, 758, [f.price != null ? `POWER ${num(f.price, 1)} C/KWH · ${priceWord(f.price).toUpperCase()}` : 'NO PRICES YET',
     S.start != null || S.state === 'now' ? `SAUNA ${S.state === 'now' ? 'NOW' : `${S.tomorrow ? 'TOMORROW ' : ''}${S.at}`}` : S.line.toUpperCase(),
     S.cost != null ? `ABOUT ${euro(S.cost)} A SESSION` : 'NORD POOL FI · FMI']);
-  return frame('portrait', s, { bg: ground });
+  return frame(orient, s, { bg: ground });
 }
 
 export const stripesP = {
@@ -73,5 +73,5 @@ export const stripesP = {
   blurb: 'An op-art numeral on a sheet of one colour. The sheet is the price (green cheap, yellow fair, '
        + 'red dear, blue below zero); the temperature steps down it in glyphs too big for the page, '
        + 'screened in black and paper stripes that interfere where they overlap. The wind ripples the stripes.',
-  render,
+  render, tall: true,
 };

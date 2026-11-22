@@ -9,7 +9,7 @@
  * yellow for now, black for an hour below zero. Everything else is paper.
  * One rectangle is the caption — its number is the day of the year.
  */
-import { frame, facts, text, measure, INK, num, pad2, euro } from './common.js';
+import { frame, facts, text, measure, INK, num, pad2, euro, SIZE } from './common.js';
 import { BANDS } from '../../prices.js';
 
 /* Ordered binary split: cut the run of hours where its price halves, across
@@ -33,10 +33,11 @@ function layout(items, x, y, w, h, out = []) {
 function render(orient) {
   return (ctx) => {
     const f = facts(ctx);
-    const [W, H] = orient === 'portrait' ? [480, 800] : [800, 480];
-    const L = orient === 'portrait' ? 9 : 8;                   // line weight
-    const cap = orient === 'portrait' ? { x: 0, y: 0, w: W, h: 168 } : { x: 0, y: 0, w: 236, h: H };
-    const field = orient === 'portrait' ? { x: 0, y: cap.h, w: W, h: H - cap.h } : { x: cap.w, y: 0, w: W - cap.w, h: H };
+    const [W, H] = SIZE[orient];
+    const up = orient !== 'landscape';                         // portrait or tall: the caption across the top
+    const L = up ? 9 : 8;                                      // line weight
+    const cap = up ? { x: 0, y: 0, w: W, h: 168 } : { x: 0, y: 0, w: 236, h: H };
+    const field = up ? { x: 0, y: cap.h, w: W, h: H - cap.h } : { x: cap.w, y: 0, w: W - cap.w, h: H };
 
     const hours = f.today.filter((p) => p.price != null);
     const dear = [...hours].filter((p) => p.price > BANDS.dear).sort((a, b) => b.price - a.price).slice(0, 4).map((p) => p.hour);
@@ -79,13 +80,13 @@ function render(orient) {
     const cx = c.x0 + 20;
     const lines = [
       [`COMPOSITION NO. ${f.doy}`, { size: 12, weight: 650, ls: 2 }],
-      [`Prices, ${f.weekday} ${f.dayMonth}`, { size: orient === 'portrait' ? 22 : 20, weight: 500 }],
+      [`Prices, ${f.weekday} ${f.dayMonth}`, { size: up ? 22 : 20, weight: 500 }],
       [`${num(f.temp)} °C · ${f.out.head}`, { size: 16, weight: 450 }],
       [f.sauna.cost != null ? `${f.sauna.line} · ${euro(f.sauna.cost)}` : f.sauna.line, { size: 16, weight: 450 }],
       [f.price != null ? `Now ${num(f.price, 2)} c/kWh, updated ${f.time}` : 'No price', { size: 13, weight: 400 }],
     ];
     const key = [[INK.red, 'dearest'], [INK.yellow, 'now'], [INK.blue, 'sauna'], ...(hours.some((p) => p.price < 0) ? [[INK.black, 'below 0']] : [])];
-    if (orient === 'portrait') {
+    if (up) {
       s += text(cx, 36, lines[0][0], lines[0][1])
          + text(W - 20, 36, f.price != null ? `NOW ${num(f.price, 2)} C · ${f.time}` : '', { size: 12, weight: 650, ls: 1.2, anchor: 'end' })
          + text(cx, 66, lines[1][0], lines[1][1])
@@ -128,5 +129,5 @@ const BLURB = 'Today’s prices as a Mondrian — the panel’s inks are his pal
   + 'rectangle whose area is its price, cut in time order; red marks the dearest hours, blue the '
   + 'sauna window, yellow now, black an hour below zero. The caption is one of the rectangles.';
 
-export const compositionP = { id: 'pz-composition-p', orient: 'portrait', name: 'Composition · portrait', blurb: BLURB, render: render('portrait') };
+export const compositionP = { id: 'pz-composition-p', orient: 'portrait', name: 'Composition · portrait', blurb: BLURB, render: (ctx, orient = 'portrait') => render(orient)(ctx), tall: true };
 export const compositionL = { id: 'pz-composition-l', orient: 'landscape', name: 'Composition · landscape', blurb: BLURB, render: render('landscape') };

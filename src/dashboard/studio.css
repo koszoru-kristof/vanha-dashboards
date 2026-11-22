@@ -1,0 +1,60 @@
+/* The E1004 studio (studio.js): options on the left, the device on the right. */
+/* on its own tab the studio is the page: the nav on top, the studio below
+   it filling the rest of the window */
+body[data-tab="e1004"]:not(.only) {
+  height: 100vh; padding: 0; box-sizing: border-box; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+body[data-tab="e1004"]:not(.only) .page-head { display: none; }
+body[data-tab="e1004"]:not(.only) nav { max-width: none; width: 100%; margin: 0; padding: 6px 40px 0; box-sizing: border-box; }
+body[data-tab="e1004"]:not(.only) #designs { flex: 1; min-height: 0; }
+body[data-tab="e1004"] .group#e1004, body[data-tab="e1004"] .group#e1004 > .cards { height: 100%; max-width: none; margin: 0; padding: 0; border: 0; display: block; }
+.studio { display: grid; grid-template-columns: 300px 1fr; height: 100%; }
+.studio-side {
+  overflow-y: auto; padding: 22px 20px 30px 40px;
+  border-right: 1px solid #8a8f95; color: #f2f4f6;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.studio-side h2 { margin: 0; font-size: 16px; font-weight: 650; }
+.studio-side h3 { margin: 18px 0 6px; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #d3d8dd; }
+.studio-spec { margin: 2px 0 10px; font-size: 12px; color: #c4cad0; line-height: 1.45; }
+.studio-spec a { color: #fff; }
+.studio-opts fieldset { border: 0; margin: 0 0 10px; padding: 0; display: flex; flex-wrap: wrap; gap: 5px; }
+.studio-opts fieldset[hidden] { display: none; }
+.studio-opts legend {
+  padding: 0; margin-bottom: 5px; font-size: 11px; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase; color: #d3d8dd;
+}
+.studio-opts button {
+  font: inherit; font-size: 12px; font-weight: 600; color: #f2f4f6; background: none; cursor: pointer;
+  padding: 3px 9px; border: 1px solid #9aa0a6; border-radius: 12px;
+}
+.studio-opts button:hover { border-color: #fff; }
+.studio-opts button.on { background: #f2f4f6; color: #16191d; border-color: #f2f4f6; }
+.studio-list { display: flex; flex-direction: column; }
+.studio-list h4 {
+  margin: 12px 0 3px; font-size: 11px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: #b9c0c7;
+}
+.studio-list h4:first-child { margin-top: 0; }
+.studio-list button {
+  font: inherit; font-size: 13px; text-align: left; color: #e3e7eb; background: none; cursor: pointer;
+  border: 0; border-radius: 4px; padding: 3px 8px; margin-left: -8px;
+}
+.studio-list button:hover { background: rgba(255,255,255,.08); color: #fff; }
+.studio-list button.on { background: #f2f4f6; color: #16191d; font-weight: 600; }
+.studio-stage { display: grid; grid-template-rows: 1fr auto; min-width: 0; min-height: 0; }
+.studio-canvas {
+  min-height: 0; overflow: hidden; display: flex; align-items: center; justify-content: center;
+  background: #d9d6cf;   /* a pale wall */
+}
+.studio-canvas.scroll { overflow: auto; align-items: flex-start; justify-content: flex-start; }
+.studio-canvas.scroll .studio-zoom { margin: 24px; }
+.studio-zoom { flex: none; }
+.studio-caption {
+  padding: 10px 24px 14px; color: #f2f4f6; border-top: 1px solid #8a8f95;
+  display: grid; grid-template-columns: 1fr auto; gap: 2px 20px; align-items: baseline;
+}
+.studio-caption h4 { margin: 0; font-size: 13px; font-weight: 700; }
+.studio-caption p { grid-column: 1; margin: 0; font-size: 12.5px; color: #d3d8dd; max-width: 110ch; }
+.studio-caption a { grid-column: 2; grid-row: 1; color: #fff; font-size: 12.5px; font-weight: 600; }

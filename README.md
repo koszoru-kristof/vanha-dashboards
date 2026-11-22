@@ -244,6 +244,7 @@ npm run dev
 | Prints | http://localhost:5173/dashboard.html#prints | Bolder single-idea prints: stripes, shadow, tide, tartan, eclipse |
 | Bauhaus style | http://localhost:5173/dashboard.html#bauhaus | Cream-and-green Bauhaus reproductions driven by sun, wind, rooms, moon, map |
 | Primary colours | http://localhost:5173/dashboard.html#primary | Red, yellow, blue, black and white only: the Spectra 6 panel's own inks, no dithering |
+| reTerminal E1004 | http://localhost:5173/dashboard.html#e1004 | A studio for the Seeed reTerminal E1004 (13.3″, 1200×1600, 3:4): options on the left (design, data, 3:4 or old 3:5 layout, on the wall or bare pixels, mat, fit or 1:1), the poster on the right in a to-scale mock-up with its black frame and white mat. Up/down arrows step through the designs; every choice is kept in the URL. `?only=e1004-<id>&exact` gives the bare 1200×1600 pixels for capture; code in `src/dashboard/device.js` and `studio.js` |
 
 Code is in `src/dashboard/posters/`, `prints/`, `bauhaus/` and `primary/`; each folder's `index.js` lists its designs and a `*kit.js` holds its palette and colour meanings.
 

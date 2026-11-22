@@ -24,7 +24,8 @@ export const HOUR = 3600e3;
 export const SANS = '"Jost Variable", Jost, Futura, sans-serif';
 export const SERIF = '"Libre Baskerville", Baskerville, Georgia, serif';
 export const MONO = '"JetBrains Mono Variable", "JetBrains Mono", Menlo, monospace';
-export const SIZE = { portrait: [480, 800], landscape: [800, 480] };
+/* tall: the 13.3" reTerminal E1004's 3:4, drawn at 2x to its 1200 x 1600 (see ../device.js) */
+export const SIZE = { portrait: [480, 800], landscape: [800, 480], tall: [600, 800] };
 
 /* ------------------------------------------------------------ formatting */
 

@@ -6,12 +6,12 @@
  * price of power, as large as the price is high, in its band's colour. A
  * black ground line holds them.
  */
-import { frame, facts, num, euro } from '../posters/common.js';
+import { frame, facts, num, euro, SIZE } from '../posters/common.js';
 import { BAU, skyInk, priceInk, priceWord, level, sunAt, mark, foot, saunaLine, T } from './bauhauskit.js';
 
-const W = 480, H = 800;
-
-function render(ctx) {
+function render(ctx, orient = 'portrait') {
+  const [W, H] = SIZE[orient];
+  const ex = W - 480;                 // the extra width of the 3:4 sheet; 0 on the 480 poster
   const f = facts(ctx);
   const S = f.sauna;
   const { u, height } = sunAt(f);
@@ -19,12 +19,14 @@ function render(ctx) {
   let s = `<rect width="${W}" height="${H}" fill="${BAU.cream}"/>`;
   // the triangle: the sun
   const th = 120 + 320 * height;
-  s += `<path d="M48,${ground} L288,${ground} L168,${ground - th} Z" fill="${u == null ? BAU.night : BAU.mustard}"/>`;
+  // on the wider sheet the three forms grow and spread; the circle rises a little to keep clear of the square
+  const tw = 240 + ex / 2;
+  s += `<path d="M48,${ground} L${48 + tw},${ground} L${48 + tw / 2},${ground - th} Z" fill="${u == null ? BAU.night : BAU.mustard}"/>`;
   // the circle: the sky
-  s += `<circle cx="336" cy="300" r="92" fill="${skyInk(f.sky ?? 'cloudy', { night: f.night })}"/>`;
+  s += `<circle cx="${336 + ex * 0.75}" cy="${300 - ex / 6}" r="${92 + ex / 10}" fill="${skyInk(f.sky ?? 'cloudy', { night: f.night })}"/>`;
   // the square: the price
-  const side = 60 + 150 * level(f.price);
-  s += `<rect x="${(430 - side).toFixed(1)}" y="${(ground - side).toFixed(1)}" width="${side.toFixed(1)}" height="${side.toFixed(1)}" fill="${priceInk(f.price)}"/>`;
+  const side = (60 + 150 * level(f.price)) * (1 + ex / 1200);
+  s += `<rect x="${(430 + ex - side).toFixed(1)}" y="${(ground - side).toFixed(1)}" width="${side.toFixed(1)}" height="${side.toFixed(1)}" fill="${priceInk(f.price)}"/>`;
   s += `<rect x="0" y="${ground}" width="${W}" height="8" fill="${BAU.black}"/>`;
 
   // the words
@@ -38,7 +40,7 @@ function render(ctx) {
     'the triangle the sun, as tall as it stands · the circle the sky · the square the price, as large as it is',
     `${saunaLine(S)}${S.cost != null ? `, about ${euro(S.cost)}` : ''}`,
   ] });
-  return frame('portrait', s, { bg: BAU.cream });
+  return frame(orient, s, { bg: BAU.cream });
 }
 
 export const formsP = {
@@ -46,5 +48,5 @@ export const formsP = {
   blurb: 'The three Bauhaus forms in their colours: the triangle is the sun, as tall on the sheet as the sun stands '
        + 'in the sky and navy after dark; the circle is the sky in its colour; the square is the price of power, as '
        + 'large as the price is high, in its band’s colour.',
-  render,
+  render, tall: true,
 };

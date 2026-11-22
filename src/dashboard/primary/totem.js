@@ -8,31 +8,32 @@
  * as it blows. The totem is tall on a hot dear day and squat on a cold
  * cheap one; the sauna window is a yellow notch in the plinth.
  */
-import { frame, facts, num, euro, HOUR } from '../posters/common.js';
+import { frame, facts, num, euro, HOUR, SIZE } from '../posters/common.js';
 import { PRI, level, mark, foot, saunaLine, priceWord, T } from './primarykit.js';
 
-const W = 480, H = 800;
 
-function render(ctx) {
+function render(ctx, orient = 'portrait') {
+  const [W, H] = SIZE[orient];
+  const u = W / 480;                                                       // 1 on the 480 sheet
   const f = facts(ctx);
   const S = f.sauna;
-  const cx = 230, ground = 690;
+  const cx = W / 2 - 10, ground = 690;
   const wind = Number.isFinite(f.wind) ? f.wind : 3;
   const mm = f.fc.between(f.now, f.now + 12 * HOUR).reduce((a, r) => a + r.mm, 0);
   const t = Number.isFinite(f.temp) ? f.temp : 5;
   // the pieces, bottom up, each with its height
   const pieces = [];
-  pieces.push({ h: 34, draw: (y) => `<rect x="${cx - 120}" y="${y}" width="240" height="34" fill="${PRI.black}"/>`
-    + (S.start != null || S.state === 'now' ? `<rect x="${cx - 120 + 24 + (S.tomorrow ? 160 : Math.min(160, ((new Date(S.start ?? f.now).getHours()) / 24) * 190))}" y="${y}" width="22" height="34" fill="${PRI.yellow}"/>` : '') });
+  pieces.push({ h: 34, draw: (y) => `<rect x="${cx - 120 * u}" y="${y}" width="${240 * u}" height="34" fill="${PRI.black}"/>`
+    + (S.start != null || S.state === 'now' ? `<rect x="${cx - 120 * u + 24 * u + (S.tomorrow ? 160 : Math.min(160, ((new Date(S.start ?? f.now).getHours()) / 24) * 190)) * u}" y="${y}" width="22" height="34" fill="${PRI.yellow}"/>` : '') });
   const ph = 40 + 200 * level(f.price);
-  pieces.push({ h: ph, draw: (y) => `<rect x="${cx - 80}" y="${y}" width="160" height="${ph.toFixed(1)}" fill="${f.price == null ? PRI.paper : f.price <= 5 ? PRI.blue : f.price <= 15 ? PRI.paper : PRI.red}" stroke="${PRI.black}" stroke-width="3"/>`
+  pieces.push({ h: ph, draw: (y) => `<rect x="${cx - 80 * u}" y="${y}" width="${160 * u}" height="${ph.toFixed(1)}" fill="${f.price == null ? PRI.paper : f.price <= 5 ? PRI.blue : f.price <= 15 ? PRI.paper : PRI.red}" stroke="${PRI.black}" stroke-width="3"/>`
     + T(cx, y + ph / 2 + 6, f.price != null ? `${num(f.price, 1)} c` : '–', { size: 17, weight: 700, anchor: 'middle', fill: f.price != null && (f.price > 15 || f.price <= 5) ? PRI.paper : PRI.black }) });
-  const r = 24 + Math.min(90, Math.abs(t) * 3.2);
+  const r = (24 + Math.min(90, Math.abs(t) * 3.2)) * u;
   pieces.push({ h: 2 * r, draw: (y) => `<circle cx="${cx}" cy="${(y + r).toFixed(1)}" r="${r.toFixed(1)}" fill="${t <= 0 ? PRI.blue : PRI.red}"/>`
-    + T(cx, y + r + 8, `${num(t, 0)}°`, { size: Math.min(44, r * 0.9), weight: 700, anchor: 'middle', fill: PRI.paper }) });
-  if (mm >= 0.2) { const bw = Math.min(300, 60 + mm * 24); pieces.push({ h: 26, draw: (y) => `<rect x="${(cx - bw / 2).toFixed(1)}" y="${y}" width="${bw.toFixed(1)}" height="26" fill="${PRI.blue}"/>` }); }
-  pieces.push({ h: 84, draw: (y) => `<circle cx="${cx}" cy="${y + 42}" r="42" fill="${f.night ? PRI.black : f.sky === 'clear' || f.sky === 'partly' ? PRI.yellow : PRI.paper}" stroke="${PRI.black}" stroke-width="3"/>` });
-  const pl = 30 + Math.min(16, wind) * 12;
+    + T(cx, y + r + 8 * u, `${num(t, 0)}°`, { size: Math.min(44 * u, r * 0.9), weight: 700, anchor: 'middle', fill: PRI.paper }) });
+  if (mm >= 0.2) { const bw = Math.min(300, 60 + mm * 24) * u; pieces.push({ h: 26, draw: (y) => `<rect x="${(cx - bw / 2).toFixed(1)}" y="${y}" width="${bw.toFixed(1)}" height="26" fill="${PRI.blue}"/>` }); }
+  pieces.push({ h: 84 * u, draw: (y) => `<circle cx="${cx}" cy="${y + 42 * u}" r="${42 * u}" fill="${f.night ? PRI.black : f.sky === 'clear' || f.sky === 'partly' ? PRI.yellow : PRI.paper}" stroke="${PRI.black}" stroke-width="3"/>` });
+  const pl = (30 + Math.min(16, wind) * 12) * u;
   pieces.push({ h: 30, draw: (y) => `<path d="M${cx - 4},${y} L${cx - 4},${y + 30} L${cx + pl},${y + 15} Z" fill="${PRI.red}"/><rect x="${cx - 8}" y="${y - 6}" width="8" height="42" fill="${PRI.black}"/>` });
   // stack them, scaled to fit under the heading
   const gap = 6;
@@ -56,7 +57,7 @@ function render(ctx) {
     [f.price != null ? `power ${num(f.price, 1)} c/kWh, ${priceWord(f.price)}` : 'no prices yet', `${saunaLine(S)}${S.cost != null ? `, about ${euro(S.cost)}` : ''}`].join(' · '),
     [mm >= 0.2 ? `${mm.toFixed(0)} mm of rain in the next 12 h` : 'dry for the next 12 h', `wind ${num(wind, 0)} m/s`, 'the yellow notch is the sauna hour'].join(' · '),
   ] });
-  return frame('portrait', s, { bg: PRI.paper });
+  return frame(orient, s, { bg: PRI.paper });
 }
 
 export const totemP = {
@@ -64,5 +65,5 @@ export const totemP = {
   blurb: 'The day’s facts stacked into one figure: a block for the price (as tall as it is), a disc for the air (as '
        + 'wide as it is far from freezing, blue below, red above), a bar for the rain ahead, the sun or the night on '
        + 'top, and a pennant for the wind. Tall on a hot dear day, squat on a cold cheap one.',
-  render,
+  render, tall: true,
 };

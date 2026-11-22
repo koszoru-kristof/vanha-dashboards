@@ -6,9 +6,7 @@
  * figure; the corner holds the sources, the way a specimen credits its
  * research. Three inks: black ground, paper, ochre.
  */
-import { frame, facts, text, measure, esc, INK, SERIF, num, pad2, euro, hash, rng, sources } from './common.js';
-
-const W = 480, H = 800;
+import { frame, facts, text, measure, esc, INK, SERIF, num, pad2, euro, hash, rng, sources, SIZE } from './common.js';
 
 function headline(f) {
   const o = f.out;
@@ -47,14 +45,16 @@ function prose(f) {
   return out.join(' ');
 }
 
-function render(ctx) {
+function render(ctx, orient = 'portrait') {
+  const [W, H] = SIZE[orient];
+  const u = W / 480;                              // 1 in portrait; the tall sheet sets the word and the column larger
   const f = facts(ctx);
   const word = f.word;
   const R = rng(hash(word));
 
   // the vertical word: as long as the page allows, never wider than its column
   const probe = measure(word, { size: 100, weight: 700, family: SERIF });
-  const size = Math.min(250, 700 / (probe.w / 100), 214 / ((probe.asc + probe.desc) / 100));
+  const size = Math.min(250 * u ** 0.5, 700 / (probe.w / 100), 214 * u ** 0.5 / ((probe.asc + probe.desc) / 100));
   const m = measure(word, { size, weight: 700, family: SERIF });
   const bx = 18 + m.asc;                          // the letters' tops face left, on the page edge
   const x0 = Math.round(bx + m.desc + 26);        // the text column starts past the descenders
@@ -64,8 +64,8 @@ function render(ctx) {
   const letters = [...word.toLowerCase()];
   const pick = (i) => (i === 0 ? word[0] : letters[i % letters.length]);
   const slots = [
-    { x: -26 - R() * 30, y: 240 + R() * 30, size: 400 + R() * 60, ch: pick(0) },
-    { x: W + 28, y: 190 + R() * 40, size: 360 + R() * 60, ch: pick(1), end: true },
+    { x: -26 - R() * 30, y: 240 + R() * 30, size: (400 + R() * 60) * u, ch: pick(0) },
+    { x: W + 28, y: 190 + R() * 40, size: (360 + R() * 60) * u, ch: pick(1), end: true },
   ];
   let s = '';
   for (const o of slots) {
@@ -81,12 +81,12 @@ function render(ctx) {
   const serif = SERIF.replace(/"/g, '\'');
   const html = `
     <div class="abs" style="left:${x0}px;bottom:20px;width:${colW}px;font-family:${serif}">
-      <div style="font-weight:700;font-size:27px;line-height:32px;color:${INK.yellow};letter-spacing:-.2px">${esc(headline(f))}</div>
-      <div style="margin-top:16px;font-size:13.5px;line-height:20px;color:${INK.paper};hyphens:auto" lang="en">${esc(prose(f))}</div>
+      <div style="font-weight:700;font-size:${27 * u}px;line-height:${32 * u}px;color:${INK.yellow};letter-spacing:-.2px">${esc(headline(f))}</div>
+      <div style="margin-top:16px;font-size:${13.5 * u ** 0.5}px;line-height:${20 * u ** 0.5}px;color:${INK.paper};hyphens:auto" lang="en">${esc(prose(f))}</div>
       <div style="margin-top:18px;font-weight:700;font-size:13px;color:${INK.yellow}">Sources</div>
       ${src.map((l) => `<div style="font-size:12px;line-height:16px;color:${INK.paper}">${esc(l)}</div>`).join('')}
     </div>`;
-  return frame('portrait', s, { bg: INK.black, html });
+  return frame(orient, s, { bg: INK.black, html });
 }
 
 export const specimenP = {
@@ -94,5 +94,5 @@ export const specimenP = {
   blurb: 'After the Baskerville poster: a type specimen for the day. The word for the sky runs up '
        + 'the page in a large serif, its letters echoed as cropped outlines; an ochre headline '
        + 'says what matters, a paragraph gives every figure, the corner credits the sources.',
-  render,
+  render, tall: true,
 };

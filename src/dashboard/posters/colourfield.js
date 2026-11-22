@@ -9,19 +9,19 @@
  * written into the sky field in its own ink, a shade darker; the facts are in
  * the caption.
  */
-import { frame, facts, esc, num, euro, uid, hash, HOUR, SANS } from './common.js';
+import { frame, facts, esc, num, euro, uid, hash, HOUR, SANS, SIZE } from './common.js';
 import { RISO, skyInk, priceInk, DISPLAY, MULTIPLY, tempWords } from './artkit.js';
 
-const W = 480, H = 800;
-
-function render(ctx) {
+function render(ctx, orient = 'portrait') {
+  const [W, H] = SIZE[orient];
+  const u = W / 480;                         // margins and the figure keep their proportion on the tall sheet
   const f = facts(ctx);
   const seed = hash(`${f.d.toDateString()}${f.scenario?.id ?? ''}`) % 997;
   const ids = { soft: uid('cfs'), grain: uid('cfg') };
   const sky = skyInk(f.sky ?? 'cloudy', { night: f.night, temp: f.temp });
   const power = priceInk(f.price);
   const light = f.dayLen != null ? Math.max(0.3, Math.min(0.78, f.dayLen / (24 * HOUR))) : 0.5;
-  const top = 40, bottom = 676, gap = 26, x0 = 38, x1 = W - 38;
+  const top = 40, bottom = 676, gap = 26, x0 = 38 * u, x1 = W - 38 * u;
   const split = top + (bottom - top - gap) * light;
 
   // painterly edges: displace the rectangles' outlines with noise, then soften
@@ -50,7 +50,7 @@ function render(ctx) {
 
   // the temperature, written into the sky in its own ink, a shade darker
   const t = `${num(f.temp, 0)}°`;
-  const tSize = Math.min(150, (split - top) * 0.62);
+  const tSize = Math.min(150 * u, (split - top) * 0.62);
   const lum = (hex) => { const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
   const tAt = `x="${x0 + 26}" y="${(split - 26).toFixed(1)}" font-family='${DISPLAY}' font-size="${tSize.toFixed(0)}" font-weight="300" font-style="italic"`;
   s += lum(sky) < 0.35
@@ -64,7 +64,7 @@ function render(ctx) {
     S.start != null ? `${S.line.toUpperCase()}${S.cost != null ? ` · ${euro(S.cost)}` : ''}` : null].filter(Boolean).join('  ·  ');
   s += `<text x="${W / 2}" y="728" font-family='${DISPLAY}' font-size="22" font-style="italic" font-weight="380" text-anchor="middle" fill="${RISO.ink}">${esc(said)}</text>`
      + `<text x="${W / 2}" y="758" font-family='${SANS}' font-size="11.5" font-weight="600" letter-spacing="1.6" text-anchor="middle" fill="${RISO.ink}">${esc(figs)}</text>`;
-  return frame('portrait', s, { bg: '#ebe3d5' });
+  return frame(orient, s, { bg: '#ebe3d5' });
 }
 
 export const colourFieldP = {
@@ -72,5 +72,5 @@ export const colourFieldP = {
   blurb: 'After Rothko: two soft fields of colour — the sky now above, as tall as the day is light; '
        + 'the price now below, sage to coral — with a thin green band between them when a sauna '
        + 'window is coming. The temperature is written into the sky, a shade darker.',
-  render,
+  render, tall: true,
 };

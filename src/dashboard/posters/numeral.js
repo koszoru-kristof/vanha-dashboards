@@ -10,7 +10,7 @@
  * hour in red, the sauna window marked in yellow; the night hours before six
  * carry the caption instead.
  */
-import { frame, facts, text, measure, INK, SANS, num, int, pad2, hm, dayStart, uid, HOUR, euro } from './common.js';
+import { frame, facts, text, measure, INK, SANS, num, int, pad2, hm, dayStart, uid, HOUR, euro, SIZE } from './common.js';
 
 const WEIGHT = 800;
 
@@ -55,9 +55,11 @@ function captionLines(f) {
 
 /* --------------------------------------------------------------- portrait */
 
-function portrait(ctx) {
+function portrait(ctx, orient = 'portrait') {
   const f = facts(ctx);
-  const W = 480, H = 800, COL = 352;
+  const [W, H] = SIZE[orient];
+  // the field takes the extra width; the numerals grow with it, cropping harder top and bottom
+  const COL = Math.round(W * 352 / 480), u = COL / 352, v = Math.sqrt(u);
   const d0 = dayStart(f.now);
   const Y = (t) => ((t - d0) / (24 * HOUR)) * H;
   const yRise = f.sun ? Y(f.sun.rise) : 0, ySet = f.sun ? Y(f.sun.set) : H;
@@ -86,12 +88,13 @@ function portrait(ctx) {
   };
   const barH = 62;
   const top0 = neg ? 150 : -34;
-  if (neg) g += `<rect x="18" y="52" width="170" height="${barH}"/>`;
+  if (neg) g += `<rect x="18" y="52" width="${170 * u}" height="${barH}"/>`;
   if (digits.length === 1) {
-    place(digits[0], 372, neg ? 560 : 600, COL + 8, true, neg ? 190 : 120);
+    place(digits[0], 372 * u, (neg ? 560 : 600) * v, COL + 8, true, neg ? 190 : 120);
   } else {
-    const a = place(digits[0], 350, neg ? 330 : 420, -14, false, top0);
-    place(digits[1], 350, neg ? 330 : 420, COL + 12, true, Math.max(a.bottom - 34, H - (neg ? 330 : 420) + 40));
+    const dh = (neg ? 330 : 420) * v;
+    const a = place(digits[0], 350 * u, dh, -14, false, top0);
+    place(digits[1], 350 * u, dh, COL + 12, true, Math.max(a.bottom - 34, H - dh + 40));
   }
   s += `<g clip-path="url(#${ids.field})">${both(g, ids)}</g>`;
 
@@ -134,7 +137,7 @@ function portrait(ctx) {
     if (h0 >= 6) s += `<rect x="${COL + 1}" y="${h0 * row}" width="6" height="${row * 2}" fill="${INK.yellow}"/>`;
   }
   s += `<rect x="0" y="${(Y(f.now) - 1).toFixed(1)}" width="${W}" height="2" fill="${INK.red}"/>`;
-  return frame('portrait', s);
+  return frame(orient, s);
 }
 
 /* -------------------------------------------------------------- landscape */
@@ -199,5 +202,5 @@ const BLURB = 'After the biennale poster. The page is today, midnight to midnigh
   + 'in numerals too big for the page, inverting where they cross into the night. The margin is the '
   + 'timetable — each hour’s price at its own hour, now in red, the sauna window in yellow.';
 
-export const numeralP = { id: 'pz-numeral-p', orient: 'portrait', name: 'Numeral · portrait', blurb: BLURB, render: portrait };
+export const numeralP = { id: 'pz-numeral-p', orient: 'portrait', name: 'Numeral · portrait', blurb: BLURB, render: portrait, tall: true };
 export const numeralL = { id: 'pz-numeral-l', orient: 'landscape', name: 'Numeral · landscape', blurb: BLURB, render: landscape };

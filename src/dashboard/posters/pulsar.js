@@ -8,10 +8,10 @@
  * Calm, dry days draw as smooth hills; a storm shakes its line. The same
  * scale for every day means a cold snap sinks the whole range.
  */
-import { frame, facts, text, INK, SANS, num, int, pad2, euro, dayStart, HOUR, rng } from './common.js';
+import { frame, facts, text, INK, SANS, num, int, pad2, euro, dayStart, HOUR, rng, SIZE } from './common.js';
 
-const W = 480, H = 800;
-const X0 = 70, X1 = 404;
+const X0 = 70;
+let W = 480, X1 = 404;                    // set per render: the ridges run to 76 px short of the edge
 const P = INK.paper;
 
 /* One ridge: [x, y] at `step` samples per hour, with seeded tremor where it rains. */
@@ -33,7 +33,11 @@ function ridge(rows, base, T, k, seed) {
 }
 const pathOf = (pts) => pts.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`).join('');
 
-function render(ctx) {
+function render(ctx, orient = 'portrait') {
+  [W] = SIZE[orient];
+  X1 = W - 76;
+  const H = SIZE[orient][1];
+  const u = W / 480;
   const f = facts(ctx);
   const d0 = dayStart(f.now);
   // the days: today from observations then forecast, the rest from the forecast
@@ -53,7 +57,7 @@ function render(ctx) {
   if (days.length) {
     const all = days.flatMap((d) => d.rows.map((r) => r.temp));
     const lo = Math.min(...all), hi = Math.max(...all);
-    const k = Math.min(10, 120 / Math.max(4, hi - lo));
+    const k = Math.min(10 * u, 120 * u / Math.max(4, hi - lo));
     const gap = 58, front = 628;
     // back to front: each ridge filled black below its line, so it hides the ones behind
     let labels = '';
@@ -87,7 +91,7 @@ function render(ctx) {
   const pb = 732;
   if (ps.length > 1) {
     const plo = Math.min(0, ...ps.map((p) => p.price)), phi = Math.max(10, ...ps.map((p) => p.price));
-    const kp = 84 / (phi - plo);
+    const kp = 84 * u / (phi - plo);
     const pts = ps.map((p) => [X0 + ((p.hour + 0.5) / 24) * (X1 - X0), pb - (p.price - plo) * kp]);
     s += `<path d="${pathOf(pts)}L${pts.at(-1)[0]},${pb + 30}L${pts[0][0]},${pb + 30}Z" fill="${INK.black}"/>`
        + `<path d="${pathOf(pts)}" fill="none" stroke="${INK.red}" stroke-width="2.4" stroke-linejoin="round"/>`;
@@ -103,12 +107,12 @@ function render(ctx) {
   s += text(24, 776, 'White: hourly temperature, one line a day, one scale. Tremor: rain.', { size: 11.5, weight: 400, fill: P })
      + text(24, 791, `Red: today’s price, c/kWh. Now ${num(f.price, 2)} c. FMI ${f.station.id} · Nord Pool FI.`, { size: 11.5, weight: 400, fill: P });
   const head = text(24, 42, `SEVEN DAYS · ${f.place.toUpperCase()}`, { size: 12, weight: 600, ls: 3, fill: P })
-     + text(456, 42, `${f.weekday.slice(0, 3).toUpperCase()} ${f.dayMonth.toUpperCase()} · ${f.time}`, { size: 12, weight: 500, ls: 1.5, fill: P, anchor: 'end' })
-     + text(20, 118, `${num(f.temp)}°`, { size: 70, weight: 300, ls: -1.5, fill: P })
-     + text(456, 92, f.out.head, { size: 17, weight: 600, fill: P, anchor: 'end' })
-     + text(456, 114, f.sauna.cost != null ? `${f.sauna.line} · ${euro(f.sauna.cost)}` : f.sauna.line, { size: 14, weight: 400, fill: P, anchor: 'end' });
+     + text(W - 24, 42, `${f.weekday.slice(0, 3).toUpperCase()} ${f.dayMonth.toUpperCase()} · ${f.time}`, { size: 12, weight: 500, ls: 1.5, fill: P, anchor: 'end' })
+     + text(20, 118, `${num(f.temp)}°`, { size: 70 * u, weight: 300, ls: -1.5, fill: P })
+     + text(W - 24, 92, f.out.head, { size: 17, weight: 600, fill: P, anchor: 'end' })
+     + text(W - 24, 114, f.sauna.cost != null ? `${f.sauna.line} · ${euro(f.sauna.cost)}` : f.sauna.line, { size: 14, weight: 400, fill: P, anchor: 'end' });
   s += head;
-  return frame('portrait', s, { bg: INK.black });
+  return frame(orient, s, { bg: INK.black });
 }
 
 export const pulsarP = {
@@ -116,5 +120,5 @@ export const pulsarP = {
   blurb: 'The week ahead as a ridgeline, after the Unknown Pleasures sleeve: one line a day, each '
        + 'its hourly temperature on one shared scale, stacked so each hides the one behind; rain '
        + 'makes a line tremble. At the front, a red ridge is today’s price.',
-  render,
+  render, tall: true,
 };

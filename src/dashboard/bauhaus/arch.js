@@ -4,16 +4,16 @@
  * travels the arch from left to right between sunrise and sunset; after
  * dark the arch itself goes black. The temperature stands in the opening.
  */
-import { frame, facts, num, euro, HOUR } from '../posters/common.js';
+import { frame, facts, num, euro, HOUR, SIZE } from '../posters/common.js';
 import { BAU, sunAt, priceWord, mark, foot, saunaLine, T } from './bauhauskit.js';
 
-const W = 480, H = 800;
-
-function render(ctx) {
+function render(ctx, orient = 'portrait') {
+  const [W, H] = SIZE[orient];
+  const e = W - 480;                                               // the extra width of a 3:4 sheet
   const f = facts(ctx);
   const S = f.sauna;
   const hours = f.dayLen != null ? Math.max(4, Math.round(f.dayLen / HOUR)) : 12;
-  const C = { x: 240, y: 560 }, r0 = 92, r1 = 212;
+  const C = { x: W / 2, y: 560 + e / 6 }, r0 = 92 + e / 6, r1 = 212 + e / 2;   // a wider sheet, a broader arch
   const { u } = sunAt(f);
   const bandInk = u == null ? BAU.black : BAU.green;                  // the arch goes dark after sunset
   const band = (r1 - r0) / hours;
@@ -28,11 +28,11 @@ function render(ctx) {
   // the sun on its way along the arch (held just inside the sheet at either end)
   if (u != null) {
     const a = Math.PI + Math.max(0.08, Math.min(0.92, u)) * Math.PI, rr = r1 + 30;
-    s += `<circle cx="${(C.x + rr * Math.cos(a)).toFixed(1)}" cy="${(C.y + rr * Math.sin(a)).toFixed(1)}" r="24" fill="${BAU.red}"/>`;
+    s += `<circle cx="${(C.x + rr * Math.cos(a)).toFixed(1)}" cy="${(C.y + rr * Math.sin(a)).toFixed(1)}" r="${24 + e / 20}" fill="${BAU.red}"/>`;
   }
 
   // the temperature in the opening
-  s += `<text x="${C.x}" y="${C.y - 22}" font-family='"Jost Variable", Jost, Futura, sans-serif' font-size="${String(Math.round(f.temp)).length > 2 ? 62 : 74}" font-weight="700" letter-spacing="-2" text-anchor="middle" fill="${BAU.black}">${num(f.temp, 0)}°</text>`;
+  s += `<text x="${C.x}" y="${C.y - 22}" font-family='"Jost Variable", Jost, Futura, sans-serif' font-size="${String(Math.round(f.temp)).length > 2 ? 62 + e / 8 : 74 + e / 8}" font-weight="700" letter-spacing="-2" text-anchor="middle" fill="${BAU.black}">${num(f.temp, 0)}°</text>`;
 
   // the words
   s += mark(40, 60, f.place.toLowerCase())
@@ -42,7 +42,7 @@ function render(ctx) {
     `${hours} hours of light${f.sun ? `, ${new Date(f.sun.rise).toTimeString().slice(0, 5)} to ${new Date(f.sun.set).toTimeString().slice(0, 5)}` : ''} · one band an hour · ${u == null ? 'the arch goes dark at night' : 'the sun on its way'}`,
     [f.price != null ? `power ${num(f.price, 1)} c/kWh, ${priceWord(f.price)}` : 'no prices yet', `${saunaLine(S)}${S.cost != null ? `, about ${euro(S.cost)}` : ''}`].join(' · '),
   ] });
-  return frame('portrait', s, { bg: BAU.cream });
+  return frame(orient, s, { bg: BAU.cream });
 }
 
 export const archP = {
@@ -50,5 +50,5 @@ export const archP = {
   blurb: 'The day as an arch of concentric bands, one for each hour of daylight, so the arch is slender in '
        + 'December and broad in June. A red sun travels it from left to right between sunrise and sunset; after '
        + 'dark the arch itself goes black. The temperature stands in the opening.',
-  render,
+  render, tall: true,
 };

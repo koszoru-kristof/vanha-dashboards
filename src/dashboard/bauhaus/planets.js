@@ -6,10 +6,9 @@
  * the wind outside; the outdoor figure stands at the head.
  */
 import plan from '../../../data/floorplan.json';
-import { frame, facts, num, euro, smooth, uid } from '../posters/common.js';
+import { frame, facts, num, euro, smooth, uid, SIZE } from '../posters/common.js';
 import { BAU, roomInk, priceWord, mark, foot, saunaLine, T } from './bauhauskit.js';
 
-const W = 480, H = 800;
 const ROOMS = [
   { id: 'living', sensor: 'climate.living', x: 150, y: 250, label: 'living' },
   { id: 'bedroom', sensor: 'climate.bedroom', x: 350, y: 190, label: 'bedroom' },
@@ -18,7 +17,9 @@ const ROOMS = [
   { id: 'sauna', sensor: 'climate.sauna', x: 250, y: 360, label: 'sauna' },
 ];
 
-function render(ctx) {
+function render(ctx, orient = 'portrait') {
+  const [W, H] = SIZE[orient];
+  const ex = W - 480;                 // the extra width of the 3:4 sheet; 0 on the 480 poster
   const f = facts(ctx);
   const S = f.sauna;
   const wind = Number.isFinite(f.wind) ? f.wind : 3;
@@ -33,9 +34,12 @@ function render(ctx) {
     s += `<path d="${smooth(top)} L${back[0][0].toFixed(1)},${back[0][1].toFixed(1)} ${smooth(back).slice(1)} Z" fill="${BAU.black}"/>`;
   }
   // the planets
-  for (const r of ROOMS) {
+  // on the wider sheet the planets spread across it (inside the 40 margins) and grow a little
+  const sx = (W - 80) / 400, grow = 1 + ex / 1200;
+  for (const r0 of ROOMS) {
+    const r = { ...r0, x: 40 + (r0.x - 40) * sx };
     const room = plan.rooms.find((q) => q.id === r.id);
-    const rad = 16 * Math.sqrt(room?.areaM2 ?? 5);
+    const rad = 16 * Math.sqrt(room?.areaM2 ?? 5) * grow;
     const t = ctx.temp?.(r.sensor);
     const ink = roomInk(t) ?? BAU.grey;
     const clip = uid('pl');
@@ -56,7 +60,7 @@ function render(ctx) {
     'a planet per room, sized by its floor · green comfortable, red warm, white cool',
     [f.price != null ? `power ${num(f.price, 1)} c/kWh, ${priceWord(f.price)}` : 'no prices yet', `${saunaLine(S)}${S.cost != null ? `, about ${euro(S.cost)}` : ''}`].join(' · '),
   ] });
-  return frame('portrait', s, { bg: BAU.cream });
+  return frame(orient, s, { bg: BAU.cream });
 }
 
 export const planetsP = {
@@ -64,5 +68,5 @@ export const planetsP = {
   blurb: 'The rooms of the flat as striped planets over a sea of waves: each planet a room, as large as its floor, in '
        + 'the colour of its warmth — green comfortable, red warm, white cool — banded in black. The waves beneath run '
        + 'with the wind outside.',
-  render,
+  render, tall: true,
 };

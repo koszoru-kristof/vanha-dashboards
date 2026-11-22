@@ -9,7 +9,7 @@
  * in yellow. The rest is plain print: the temperature in a hairline weight
  * against the heavy grid, the outlook, the numbers behind the weights.
  */
-import { frame, facts, text, measure, INK, SANS, num, pad2, hh, euro } from './common.js';
+import { frame, facts, text, measure, INK, SANS, num, pad2, hh, euro, SIZE } from './common.js';
 
 const MAX_C = 60;
 /** c/kWh → font weight 100–900 on a log scale; null below zero. */
@@ -57,16 +57,18 @@ function numbersLine(f) {
 const saunaLine = (f) => (f.sauna.cost != null ? `${f.sauna.line} · ${euro(f.sauna.cost)}` : f.sauna.line);
 const LEGEND = 'Weight is price, hairline 0 to black 60 c · outline: below zero';
 
-function portrait(ctx) {
+function portrait(ctx, orient = 'portrait') {
+  const [W] = SIZE[orient];
   const f = facts(ctx);
   let s = text(24, 40, `${f.place.toUpperCase()} · ${f.weekday.toUpperCase()} ${f.dayMonth.toUpperCase()} · ${f.time}`, { size: 12, weight: 650, ls: 1.5 })
         + text(20, 112, `${num(f.temp)}°`, { size: 76, weight: 200, ls: -2 })
-        + text(456, 82, f.out.head, { size: 18, weight: 600, anchor: 'end' })
-        + text(456, 106, saunaLine(f), { size: 15, weight: 450, anchor: 'end' });
-  s += grid(f, { x0: 18, y0: 140, cols: 4, rows: 6, cw: 111, ch: 97 });
+        + text(W - 24, 82, f.out.head, { size: 18, weight: 600, anchor: 'end' })
+        + text(W - 24, 106, saunaLine(f), { size: 15, weight: 450, anchor: 'end' });
+  // the grid spans the sheet: wider cells set the hours larger
+  s += grid(f, { x0: 18, y0: 140, cols: 4, rows: 6, cw: (W - 36) / 4, ch: 97 });
   s += text(24, 752, numbersLine(f), { size: 14, weight: 500 })
      + text(24, 774, LEGEND, { size: 13, weight: 400 });
-  return frame('portrait', s);
+  return frame(orient, s);
 }
 
 function landscape(ctx) {
@@ -85,5 +87,5 @@ const BLURB = 'Today’s hours set in a variable font whose weight is the price,
   + 'a hairline hour is nearly free, a black one is dear, an outlined one is below zero. '
   + 'Gone hours are struck through, now is red, the sauna window underlined in yellow.';
 
-export const weightP = { id: 'pz-weight-p', orient: 'portrait', name: 'Weight · portrait', blurb: BLURB, render: portrait };
+export const weightP = { id: 'pz-weight-p', orient: 'portrait', name: 'Weight · portrait', blurb: BLURB, render: portrait, tall: true };
 export const weightL = { id: 'pz-weight-l', orient: 'landscape', name: 'Weight · landscape', blurb: BLURB, render: landscape };

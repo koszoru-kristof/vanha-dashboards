@@ -10,12 +10,13 @@
  * different every day and the same day is always the same. The temperature
  * stands in the largest field.
  */
-import { frame, facts, num, euro } from '../posters/common.js';
+import { frame, facts, num, euro, SIZE } from '../posters/common.js';
 import { PRI, BAND_INK, hours, runs, onInk, mark, foot, saunaLine, priceWord, T } from './primarykit.js';
 
-const W = 480, H = 800;
 
-function render(ctx) {
+function render(ctx, orient = 'portrait') {
+  const [W, H] = SIZE[orient];
+  const u = W / 480;                                                       // 1 on the 480 sheet
   const f = facts(ctx);
   const S = f.sauna;
   const list = hours(f, 24);
@@ -43,7 +44,7 @@ function render(ctx) {
   s += `<circle cx="${(c0.x + 26).toFixed(1)}" cy="${(c0.y + 26).toFixed(1)}" r="9" fill="${PRI.black}"/>`;
   // the temperature in the largest field
   const big = cells.reduce((a, c) => (c.w * c.h > a.w * a.h ? c : a));
-  const size = Math.min(110, big.w * 0.42, big.h * 0.8);
+  const size = Math.min(110 * u, big.w * 0.42, big.h * 0.8);
   s += `<text x="${(big.x + big.w / 2).toFixed(1)}" y="${(big.y + big.h / 2 + size * 0.36).toFixed(1)}" font-family='"Jost Variable", Jost, Futura, sans-serif' font-size="${size.toFixed(0)}" font-weight="700" letter-spacing="-2" text-anchor="middle" fill="${onInk(ink(big.run))}">${num(f.temp, 0)}°</text>`;
 
   // the words
@@ -56,7 +57,7 @@ function render(ctx) {
     'a field per run of hours, as large as its share: blue cheap, white fair, red dear, yellow the sauna',
     'the dot is now · the temperature stands in the largest field'
   ] });
-  return frame('portrait', s, { bg: PRI.paper });
+  return frame(orient, s, { bg: PRI.paper });
 }
 
 export const partitionP = {
@@ -64,5 +65,5 @@ export const partitionP = {
   blurb: 'A Neo-Plasticist grid grown from the coming day: the next twenty-four hours grouped into runs of cheap '
        + '(blue), fair (white) and dear (red) power, the sauna window cut out in yellow, each run a field as large '
        + 'as its share of the day, sliced in turn from the left and the top with black bars between.',
-  render,
+  render, tall: true,
 };

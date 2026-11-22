@@ -5,12 +5,11 @@
  * black, the waves cream, and a white moon takes the sun's place. The
  * waves run as high as the wind. The heading states the day.
  */
-import { frame, facts, num, euro, smooth } from '../posters/common.js';
+import { frame, facts, num, euro, smooth, SIZE } from '../posters/common.js';
 import { BAU, sunAt, priceWord, T } from './bauhauskit.js';
 
-const W = 480, H = 800;
-
-function render(ctx) {
+function render(ctx, orient = 'portrait') {
+  const [W, H] = SIZE[orient];
   const f = facts(ctx);
   const S = f.sauna;
   const { u, height } = sunAt(f);
@@ -20,8 +19,8 @@ function render(ctx) {
 
   // the sun (or the moon), behind the sea
   const horizon = 420, R = 112;
-  if (!night) s += `<circle cx="240" cy="${(horizon + 26 - height * 200).toFixed(1)}" r="${R}" fill="${BAU.red}"/>`;
-  else s += `<circle cx="300" cy="300" r="${R * 0.62}" fill="${BAU.white}"/>`;
+  if (!night) s += `<circle cx="${W / 2}" cy="${(horizon + 26 - height * 200).toFixed(1)}" r="${R}" fill="${BAU.red}"/>`;
+  else s += `<circle cx="${W / 2 + 60}" cy="300" r="${R * 0.62}" fill="${BAU.white}"/>`;
 
   // the sea: bands that heave with the wind
   const wind = Number.isFinite(f.wind) ? f.wind : 3;
@@ -43,7 +42,7 @@ function render(ctx) {
   s += T(40, 156, [f.price != null ? `POWER ${num(f.price, 1)} C/KWH, ${priceWord(f.price).toUpperCase()}` : 'NO PRICES YET',
     S.state === 'now' ? 'SAUNA NOW' : S.start != null ? `SAUNA ${S.tomorrow ? 'TOMORROW ' : ''}${S.at}` : null,
     S.cost != null ? euro(S.cost) : null].filter(Boolean).join('  ·  '), { size: 10, weight: 600, ls: 1.2, fill: ink });
-  return frame('portrait', s, { bg: ground });
+  return frame(orient, s, { bg: ground });
 }
 
 export const sunsetP = {
@@ -51,5 +50,5 @@ export const sunsetP = {
   blurb: 'A red sun over a black sea of waves, as on the 1923 exhibition poster, except that the sun stands where '
        + 'it really is — rising out of the sea at dawn, high at noon, sinking at dusk — and after dark the sheet '
        + 'turns black under a white moon. The waves run as high as the wind.',
-  render,
+  render, tall: true,
 };

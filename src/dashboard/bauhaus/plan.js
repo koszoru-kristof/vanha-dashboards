@@ -9,19 +9,20 @@
  */
 import plan from '../../../data/floorplan.json';
 import { planGeometry } from '../plan2d.js';
-import { frame, facts, num, euro } from '../posters/common.js';
+import { frame, facts, num, euro, SIZE } from '../posters/common.js';
 import { BAU, roomInk, priceWord, mark, foot, saunaLine, T } from './bauhauskit.js';
 
-const W = 480, H = 800;
 const SENSOR = { living: 'climate.living', bedroom: 'climate.bedroom', bathroom: 'climate.bathroom', sauna: 'climate.sauna', balcony: 'climate.balcony' };
 const G = planGeometry(plan);
 
-function render(ctx) {
+function render(ctx, orient = 'portrait') {
+  const [W, H] = SIZE[orient];
+  const e = W - 480;                                               // the extra width of a 3:4 sheet
   const f = facts(ctx);
   const S = f.sauna;
   const b = G.bounds;
-  const k = Math.min(400 / (b.x1 - b.x0), 560 / (b.y1 - b.y0));
-  const ox = (W - (b.x1 - b.x0) * k) / 2 - b.x0 * k, oy = 130 - b.y0 * k;
+  const k = Math.min((400 + e) / (b.x1 - b.x0), (560 + e * 0.4) / (b.y1 - b.y0));   // the plan grows into a wider sheet
+  const ox = (W - (b.x1 - b.x0) * k) / 2 - b.x0 * k, oy = 130 - e * 0.1 - b.y0 * k;
   const X = (x) => (ox + x * k).toFixed(1), Y = (y) => (oy + y * k).toFixed(1);
   let s = `<rect width="${W}" height="${H}" fill="${BAU.cream}"/>`;
 
@@ -43,7 +44,7 @@ function render(ctx) {
     const t = temps[r.id];
     if (!Number.isFinite(t) || t === 0) continue;
     const ink = roomInk(t) === BAU.white ? BAU.black : BAU.white;
-    s += T(X(r.centroid[0]), (+Y(r.centroid[1]) + 6).toFixed(1), `${num(t, 0)}°`, { size: 17, weight: 700, anchor: 'middle', fill: ink });
+    s += T(X(r.centroid[0]), (+Y(r.centroid[1]) + 6).toFixed(1), `${num(t, 0)}°`, { size: 17 + e / 30, weight: 700, anchor: 'middle', fill: ink });
   }
 
   // the outside, at the head
@@ -55,7 +56,7 @@ function render(ctx) {
     'the flat as it is: green comfortable, red warm, white cool, cream unmeasured',
     [f.price != null ? `power ${num(f.price, 1)} c/kWh, ${priceWord(f.price)}` : 'no prices yet', `${saunaLine(S)}${S.cost != null ? `, about ${euro(S.cost)}` : ''}`].join(' · '),
   ] });
-  return frame('portrait', s, { bg: BAU.cream });
+  return frame(orient, s, { bg: BAU.cream });
 }
 
 export const planP = {
@@ -63,5 +64,5 @@ export const planP = {
   blurb: 'The flat itself as a composition: the real floor plan, walls in black, each room a block in the colour '
        + 'of its own temperature — green comfortable, red warm, white cool, cream where there is no sensor — with '
        + 'the outdoor figure at the head, inside against outside.',
-  render,
+  render, tall: true,
 };
