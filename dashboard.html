@@ -15,6 +15,13 @@
       .page-head { max-width: 800px; margin: 0 auto 26px; color: #f2f4f6; }
       .page-head h1 { margin: 0 0 6px; font-size: 19px; font-weight: 650; }
       .page-head p { margin: 0; font-size: 13.5px; color: #d3d8dd; max-width: 70ch; }
+      .page-head .place { margin-top: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; max-width: none; }
+      .page-head .place label { font-weight: 600; color: #f2f4f6; }
+      .page-head .place select {
+        font: inherit; font-size: 13px; font-weight: 600; color: #16191d; background: #f2f4f6;
+        border: 1px solid #9aa0a6; border-radius: 12px; padding: 3px 10px;
+      }
+      .page-head .place span { font-size: 12.5px; color: #b9c0c7; }
       nav { max-width: 800px; margin: 0 auto 34px; display: flex; gap: 4px;
             border-bottom: 1px solid #8a8f95; }
       nav a {
@@ -43,12 +50,34 @@
         width: 800px; height: 480px; background: #fff;
         box-shadow: 0 0 0 10px #22262b, 0 14px 34px rgba(0,0,0,.45);
       }
+      .frame.portrait { width: 480px; height: 800px; }
+      /* the poster tab is wider: portrait posters sit side by side */
+      .group.wide .cards {
+        max-width: 1290px; margin: 0 auto;
+        display: flex; flex-wrap: wrap; justify-content: center; gap: 0 40px;
+      }
+      .group.wide .group-head { max-width: 1290px; }
+      .group.wide .subgroup { width: 100%; margin: 20px auto 30px; padding-top: 34px; border-top: 1px solid #8a8f95; }
+      .group.wide .card { margin: 0 0 44px; }
+      .group.wide .card.portrait { width: 480px; }
+      .group.wide .card.landscape { width: 800px; }
+      .group.wide .card.sheet-card { width: 100%; max-width: 1290px; }
+      .sheet-card header { max-width: 800px; }
+      .sheet { display: flex; flex-wrap: wrap; gap: 22px 22px; }
+      .thumb { display: block; text-decoration: none; }
+      .thumb span {
+        display: block; margin-bottom: 8px; color: #d3d8dd;
+        font-size: 12px; font-weight: 600; letter-spacing: .06em;
+      }
+      .thumb:hover span { color: #fff; }
+      .thumb .frame { zoom: .5; }
       /* ?only=<id>: just the panel, at 1:1, for capture and for the device */
       body.only { padding: 0; background: #fff; }
       body.only .page-head, body.only nav { display: none; }
       body.only .group { margin: 0; padding: 0; border: 0; }
       .group:empty { display: none; }
       body.only .card { margin: 0; }
+      body.only .group.wide .cards { display: block; margin: 0; }
       body.only .frame { box-shadow: none; }
     </style>
   </head>
@@ -63,6 +92,11 @@
         pixels are glyph and curve antialiasing, which the panel thresholds without
         losing anything.
       </p>
+      <p class="place">
+        <label for="place">Live data for</label>
+        <select id="place" aria-label="Place the live data is for"></select>
+        <span id="place-note"></span>
+      </p>
     </div>
     <nav>
       <a href="#" data-tab="all">All</a>
@@ -71,6 +105,10 @@
       <a href="#forecast" data-tab="forecast">Forecast</a>
       <a href="#colour" data-tab="colour">Colour</a>
       <a href="#fresh" data-tab="fresh">Colour, fresh</a>
+      <a href="#posters" data-tab="posters">Posters</a>
+      <a href="#prints" data-tab="prints">Prints</a>
+      <a href="#bauhaus" data-tab="bauhaus">Bauhaus style</a>
+      <a href="#primary" data-tab="primary">Primary colours</a>
     </nav>
     <div id="designs"></div>
     <script type="module" src="/src/dashboard/main.js"></script>

@@ -2,7 +2,7 @@
  * The real panel: Lead + price and its forecast variants on live data, one
  * 800x480 page and nothing else.
  *
- *   outdoor   FMI observations, Espoo Tapiola station     src/adapters/fmi.js
+ *   outdoor   FMI observations, the station nearest the chosen place (?place=, src/places.js)
  *   forecast  FMI edited point forecast, same spot         src/adapters/fmi.js
  *   prices    Nord Pool FI day-ahead via porssisahko.net   src/adapters/porssisahko.js
  *   indoor    still the mock until the room sensors exist, and labelled as such
@@ -25,6 +25,8 @@ import { createBus } from '../state.js';
 import { startMock } from '../adapters/mock.js';
 import { startPriceFeed } from '../adapters/porssisahko.js';
 import { createWeatherStore, startWeatherFeed, createForecastStore, startForecastFeed } from '../adapters/fmi.js';
+import { chosenPlace } from '../places.js';
+import { setHome } from '../weather.js';
 import { createPriceStore, verdict } from '../prices.js';
 import { leadPrice } from '../dashboard/designs-price.js';
 import { FORECAST_DESIGNS } from '../dashboard/designs-forecast.js';
@@ -41,11 +43,13 @@ const ROOMS = [
 ];
 
 const bus = createBus(buildDevices(plan));
+const place = chosenPlace();
+setHome(place.lat, place.lon);
 const weather = createWeatherStore();
 const forecast = createForecastStore();
 const prices = createPriceStore();
-startWeatherFeed(weather, bus);
-startForecastFeed(forecast);
+startWeatherFeed(weather, bus, { fmisid: place.station.id });
+startForecastFeed(forecast, { latlon: place.latlon });
 startPriceFeed(prices);
 /* Indoor only. Slow, because each redraw costs an e-ink refresh. */
 startMock(bus, { interval: 60 * 1000, outdoor: false });

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * Bake a neighbourhood map for the panel backgrounds: data/tapiola-map.json.
+ * Bake a neighbourhood map for the panel backgrounds: data/<place>-map.json.
  *
- * Centred on the FMI Tapiola weather station (the public point the outdoor
- * readings come from), not on the flat. Covers ~2.4 x 1.45 km, which is
+ * Centred on the chosen place (src/places.js) — for Tapiola that is the FMI
+ * weather station, not the flat. Covers ~2.4 x 1.45 km, which is
  * exactly 800x480 at the panel's aspect, so one map pixel is one panel pixel.
  *
  * Pulls roads, paths, buildings, water, parks and woods from OpenStreetMap via
@@ -11,14 +11,22 @@
  * to well under a pixel over 2 km), simplifies to ~1 px, and stores each layer
  * as a single SVG path string so drawing it is one <path> per layer.
  *
- *   node tools/fetch_osm.mjs            (or: node tools/fetch_osm.mjs osm.json)
+ *   node tools/fetch_osm.mjs                       the default place (Leppävaara), from Overpass
+ *   node tools/fetch_osm.mjs --place leppavaara    any id in src/places.js → data/<id>-map.json
+ *   node tools/fetch_osm.mjs [--place id] osm.json  from a saved Overpass response
  *
  * Map data © OpenStreetMap contributors, ODbL. The panel prints the credit.
  */
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { PLACES, DEFAULT_PLACE } from '../src/places.js';
 
-const CENTER = { lat: 60.178, lon: 24.787 };
+const args = process.argv.slice(2);
+const placeId = args.includes('--place') ? args[args.indexOf('--place') + 1] : DEFAULT_PLACE;
+const PLACE = PLACES.find((p) => p.id === placeId);
+if (!PLACE) { console.error(`unknown place ${placeId}; one of ${PLACES.map((p) => p.id).join(', ')}`); process.exit(1); }
+const osmFile = args.filter((a, i) => a !== '--place' && args[i - 1] !== '--place')[0];
+const CENTER = { lat: PLACE.lat, lon: PLACE.lon };
 const W = 800, H = 480;
 const HALF_LAT = 0.0065;                       // ±0.72 km
 const HALF_LON = HALF_LAT * (W / H) / Math.cos(CENTER.lat * Math.PI / 180);
@@ -45,7 +53,8 @@ async function load(file) {
     way["leisure"~"park|pitch"](${b});
     way["landuse"~"grass|forest|meadow"](${b});
     way["building"](${b}););out geom;`;
-  const res = await fetch('https://overpass-api.de/api/interpreter', {
+  // Dense areas (Helsinki centre) can time out on the main instance; OVERPASS=<url> picks a mirror.
+  const res = await fetch(process.env.OVERPASS ?? 'https://overpass-api.de/api/interpreter', {
     method: 'POST', body: new URLSearchParams({ data: q }),
     headers: { 'user-agent': 'smarthome-dashboard-study/0.1' },
   });
@@ -102,7 +111,7 @@ function toPath(geom, closed) {
   return `M${pts.map((p) => p.join(' ')).join('L')}${closed ? 'Z' : ''}`;
 }
 
-const osm = await load(process.argv[2]);
+const osm = await load(osmFile);
 const layers = Object.fromEntries(Object.keys(CLASSES).map((k) => [k, []]));
 for (const el of osm.elements) {
   const t = el.tags ?? {};
@@ -121,7 +130,7 @@ const out = {
   attribution: '© OpenStreetMap contributors',
   layers: Object.fromEntries(Object.entries(layers).map(([k, v]) => [k, v.join('')])),
 };
-const file = resolve(import.meta.dirname, '..', 'data', 'tapiola-map.json');
+const file = resolve(import.meta.dirname, '..', 'data', `${PLACE.map}-map.json`);
 await writeFile(file, JSON.stringify(out));
 console.log(file, Object.fromEntries(Object.entries(layers).map(([k, v]) => [k, v.length])),
   `${(JSON.stringify(out).length / 1024).toFixed(0)} kB`);

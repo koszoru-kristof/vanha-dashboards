@@ -188,7 +188,12 @@ export function tomorrow(forecast, now = Date.now()) {
  * does not carry them. Returns ms timestamps, or null for polar day / night,
  * which Espoo at 60°N never quite reaches.
  */
-export function sunTimes(t = Date.now(), lat = 60.178, lon = 24.787) {
+/* Where the sun is computed for when a caller gives no coordinates: the
+   chosen place (see src/places.js), Leppävaara until a page says otherwise. */
+let HOME = { lat: 60.219, lon: 24.813 };
+export function setHome(lat, lon) { HOME = { lat, lon }; }
+
+export function sunTimes(t = Date.now(), lat = HOME.lat, lon = HOME.lon) {
   const rad = Math.PI / 180;
   const d = new Date(t);
   const noon = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 12);

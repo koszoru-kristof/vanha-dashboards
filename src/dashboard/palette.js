@@ -37,6 +37,48 @@ export const PURE = {
 };
 
 /**
+ * INK: the six pigments themselves, for the poster studies
+ * (src/dashboard/posters/). A poster uses these and nothing else, always flat:
+ * no tints, no gradients, so the driver has nothing to dither and the preview
+ * is what the wall shows. The four colours are the MUTED tones; paper is the
+ * panel's white, which reads as a warm off-white beside real paper.
+ */
+export const INK = {
+  paper: '#f3f0e8',
+  black: '#1f2124',
+  red: MUTED.dear,
+  yellow: MUTED.sun,
+  blue: MUTED.rain,
+  green: MUTED.go,
+};
+
+/**
+ * RISO: soft inks for the art set of posters, used the way a risograph uses
+ * them — as translucent layers that overprint (multiply) where they meet.
+ * Tints are dithered by the panel driver into a grain that reads like riso
+ * print; type is always `ink`, a deep navy.
+ */
+export const RISO = {
+  paper: '#f5f0e6',
+  ink: '#1f2b4d',
+  blue: '#4a6fb5',
+  sky: '#9dbbe0',
+  mist: '#d9dcd9',
+  cloud: '#c9c6bf',
+  sun: '#f2c14e',
+  apricot: '#f3a765',
+  coral: '#e8765e',
+  rose: '#f1a894',
+  sand: '#f0d08a',
+  sage: '#95c29a',
+  mint: '#a9d6cf',
+  green: '#3f8f6b',
+  night: '#34416b',
+  dusk: '#6d7aa3',
+  ice: '#cfe1ef',
+};
+
+/**
  * SOFT: the palette for the ground-up colour proposals. These do use tints —
  * peach, sage, sand, pale blue — which a Spectra 6 driver dithers from its six
  * inks, the way commercial colour e-ink weather frames do. Kept to pale,

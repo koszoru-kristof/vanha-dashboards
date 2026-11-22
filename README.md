@@ -20,6 +20,8 @@ npm install
 npm run dev        # 3D flat at http://localhost:5173, dashboards at /dashboard.html
 ```
 
+The 2D poster proposals are tabs on the dashboards page; see [Poster studies](#poster-studies-2d-design-proposals) for direct links.
+
 Requirements: Node (Vite 8, three.js r186). Python 3 stdlib only if you rebuild the floorplan geometry. Poppler (`pdfimages`) only if you re-extract the plan from the brochure PDF, which is not in git.
 
 ---
@@ -158,7 +160,7 @@ URL parameters: `?only=<id>` renders one panel at 1:1 with no page chrome, for c
 
 ### Forecast: what will the rest of the day do?
 
-The Forecast tab keeps Lead + price and replaces its "last 24 hours" block with the rest of the day. Outdoor now and the forecast are real FMI data for Tapiola. The big figure stays the observed temperature. Under it, the high and low are for the calendar day, observed since midnight plus forecast to midnight, followed by the wind.
+The Forecast tab keeps Lead + price and replaces its "last 24 hours" block with the rest of the day. Outdoor now and the forecast are real FMI data for the chosen place (Leppävaara unless you pick another, see below). The big figure stays the observed temperature. Under it, the high and low are for the calendar day, observed since midnight plus forecast to midnight, followed by the wind.
 
 | Design | Character |
 |---|---|
@@ -195,7 +197,7 @@ Four designs for a colour panel, each built as one SVG painted back to front, so
 
 | Design | Layers |
 |---|---|
-| **Neighbourhood** | The streets, buildings, parks and pond around the Tapiola station, with the weather painted over them: a sun the roads run across, rain streaks, snow, fog banks, wind strokes, or the same map by night with stars. Power is a transit line: stops are hours, the line's colour is the tariff, and the sauna window is a ringed stop |
+| **Neighbourhood** | The streets, buildings, parks and water around the chosen place, with the weather painted over them: a sun the roads run across, rain streaks, snow, fog banks, wind strokes, or the same map by night with stars. Power is a transit line: stops are hours, the line's colour is the tariff, and the sauna window is a ringed stop |
 | **Horizon** | A landscape. The sky's bands show time of day and weather. The sun or moon sits on its real sunrise–sunset arc. The hills are the next 24 h of prices: fields coloured by tariff, a lake where the price goes below zero, a pale plain where prices are not yet published, and a sauna cabin smoking at the cheapest window |
 | **Dial** | A 24 h clock face with noon at the top. From the inside out: temperature as a polar line, rain ticks, daylight arc, then price as radial bars. One hand shows now, and the sauna window is a green arc on the rim |
 | **Riso** | A risograph poster: two inks overprint where they cross, plus an off-register halftone. The temperature is set huge and the outlook as stacked words. The tariff is a ticket stub and the sauna is a rubber stamp |
@@ -223,7 +225,45 @@ Negative prices get their own colour (blue), apart from cheap.
 
 Each scenario fills the same stores the live adapters do, so sunrise and sunset, the outlook sentence and the sauna verdict all come out of the real code. Pick one with the chips, or use `?scenario=<id>|all|live`. `?only=<design>--<scenario>` captures one panel.
 
-**The map** is baked by `tools/fetch_osm.mjs` into `data/tapiola-map.json` (~200 kB, one SVG path per layer). It covers 2.4 × 1.45 km at exactly the panel's aspect ratio. It is centred on the public FMI station, not on the flat. Map data © OpenStreetMap contributors, ODbL; the panel prints the credit.
+**The map** is baked by `tools/fetch_osm.mjs --place <id>` into `data/<id>-map.json` (~200 kB each, one SVG path per layer; the page loads only the chosen one). Each covers 2.4 × 1.45 km at exactly the panel's aspect ratio, centred on the place — for Tapiola that is the public FMI station, not the flat. Map data © OpenStreetMap contributors, ODbL; the panel prints the credit.
+
+**The place.** Both pages take `?place=<id>` — `leppavaara` (the default), `tapiola`, `matinkyla`, `espoon-keskus` or `helsinki`, listed in `src/places.js` — and the studies page has a chooser at its head; the choice is remembered in localStorage. The forecast (a gridded model sampled at a point), sunrise and sunset, and the map are for the place itself. Observations can only come from a real thermometer, so each place is served by the nearest station in FMI's weather-station network: Leppävaara has an HSY air-quality monitor but no FMI thermometer, so its "outdoor now" comes from Espoo Tapiola, 4.6 km away, and the posters print the station beside the source credit. Adding a place is one line in `src/places.js` plus one run of the map tool.
+
+### Poster studies (2D design proposals)
+
+The artistic 2D proposals for the living-room wall live on the same page as the other studies, one tab per series. Start the dev server and open a tab directly:
+
+```sh
+npm install
+npm run dev
+```
+
+| Tab | URL | What it is |
+|---|---|---|
+| Posters | http://localhost:5173/dashboard.html#posters | Typographic posters in the panel's six flat inks, then the soft-ink "Art set" |
+| Prints | http://localhost:5173/dashboard.html#prints | Bolder single-idea prints: stripes, shadow, tide, tartan, eclipse |
+| Bauhaus style | http://localhost:5173/dashboard.html#bauhaus | Cream-and-green Bauhaus reproductions driven by sun, wind, rooms, moon, map |
+| Primary colours | http://localhost:5173/dashboard.html#primary | Red, yellow, blue, black and white only: the Spectra 6 panel's own inks, no dithering |
+
+Code is in `src/dashboard/posters/`, `prints/`, `bauhaus/` and `primary/`; each folder's `index.js` lists its designs and a `*kit.js` holds its palette and colour meanings.
+
+Each tab shows every design as a contact sheet across the five scenarios. Click a thumbnail to open it at 1:1. Useful URL parameters, which combine:
+
+| Parameter | Effect |
+|---|---|
+| `?scenario=live` | Real FMI weather and Nord Pool prices instead of the synthetic days |
+| `?scenario=storm` | One scenario only: `storm`, `frost`, `summer`, `sleet` or `fog` |
+| `?place=tapiola` | The place the live data is for (also the chooser at the top of the page) |
+| `?only=bh-sunset-p--storm` | One poster alone at 1:1, for screenshots; the id is the design id plus `--` and a scenario |
+| `?at=21:30` | Freeze the clock, for the sauna verdict at another time of day |
+
+For example, the Bauhaus sunset on live data for Leppävaara:
+
+```
+http://localhost:5173/dashboard.html?only=bh-sunset-p&scenario=live&place=leppavaara
+```
+
+Portrait posters are 480×800 and landscape ones 800×480, the 7.3″ panel turned either way.
 
 ### The real panel
 
@@ -231,9 +271,9 @@ Each scenario fills the same stores the live adapters do, so sunrise and sunset,
 
 | Part | Source |
 |---|---|
-| Outdoor now, 24 h trend, high / low, humidity | FMI open-data observations, Espoo Tapiola station (fmisid 874863), 10 min steps. `src/adapters/fmi.js` |
+| Outdoor now, 24 h trend, high / low, humidity | FMI open-data observations from the weather station nearest the chosen place (Espoo Tapiola, fmisid 874863, for the default Leppävaara), 10 min steps. `src/adapters/fmi.js`, `src/places.js` |
 | Price ribbon, current price, sauna verdict | Nord Pool FI day-ahead via porssisahko.net, as above |
-| Forecast views | FMI edited point forecast for the same spot, hourly |
+| Forecast views | FMI edited point forecast for the place itself, hourly |
 | Indoor strip | Still the mock, labelled **Indoor · simulated** until the room sensors exist |
 
 By default the page cycles through the views, one per minute (`?every=<seconds>` changes that). `/views/<id>` or `?view=<id>` pins one view, and `/views` lists them. In a browser, a click or the arrow keys step to the next view. The view is picked from the clock, so a browser and `/panel.png` show the same one.

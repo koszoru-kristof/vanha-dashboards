@@ -3,7 +3,7 @@
  *
  * Each is one SVG built back to front, so the layers are literal:
  *
- *   Neighbourhood  the streets around the Tapiola station as the ground layer,
+ *   Neighbourhood  the streets around the chosen place as the ground layer,
  *                  weather painted over it (a sun the roads run across, rain
  *                  streaks, fog banks, a night sky), power as a transit line
  *                  whose stops are hours and whose colour is the tariff
@@ -26,7 +26,6 @@
  */
 import '@fontsource-variable/jost';
 import './colour.css';
-import MAP from '../../data/tapiola-map.json';
 import { panel } from './designs.js';
 import { SOFT as C } from './palette.js';
 import { outlook, todayRange, blockKind, sunTimes, tomorrow, kind as kindOf } from '../weather.js';
@@ -117,14 +116,15 @@ const waiting = () => frame(T(24, 40, 'Waiting for the forecast…', { size: 22 
 export const artMap = {
   id: 'art-map',
   name: 'Neighbourhood',
-  blurb: 'The streets around the Tapiola station as the ground layer, with the weather '
+  blurb: 'The streets around the chosen place as the ground layer, with the weather '
        + 'painted over it: a sun the roads run across, rain streaks, fog banks, or the same '
        + 'map by night. Electricity is a transit line along the bottom — stops are hours, '
        + 'the line’s colour is the tariff, the sauna is a stop.',
   render(ctx) {
     const m = model(ctx);
     if (!m.fc.rows.length) return waiting();
-    const L = MAP.layers;
+    if (!ctx.map) return frame(T(24, 40, 'No map baked for this place yet', { size: 22 }));
+    const L = ctx.map.layers;
     const N = m.night;
     const col = N
       ? { bg: '#2b3752', green: '#33425e', wood: '#35475f', water: '#46597f', building: '#3b4966', path: '#4b5a78', minor: '#6a7792', major: '#95a0b6', text: '#f4f1e8' }
@@ -174,7 +174,7 @@ export const artMap = {
     s += `<circle cx="400" cy="240" r="9" fill="#fff" opacity=".9"/><circle cx="400" cy="240" r="5" fill="${C.ink}"/>`;
     s += `<path d="M322 178 L396 236" stroke="${N ? '#fff' : C.ink}" stroke-width="1.5"/>`;
     s += `<rect x="24" y="22" width="300" height="168" rx="16" fill="#ffffff" stroke="${C.ink}" stroke-width="1.5"/>`;
-    s += T(44, 52, 'TAPIOLA', { size: 15, weight: 600, ls: 2.5 }) + T(304, 52, `${ctx.now}`, { size: 17, weight: 500, anchor: 'end' });
+    s += T(44, 52, (ctx.place?.name ?? 'Tapiola').toUpperCase(), { size: 15, weight: 600, ls: 2.5 }) + T(304, 52, `${ctx.now}`, { size: 17, weight: 500, anchor: 'end' });
     s += T(40, 124, `${r1(m.T)}°`, { size: 76, weight: 430, ls: -1.5 });
     s += T(44, 154, m.out.head, { size: 20, weight: 600 });
     s += T(44, 178, `${m.range ? `${r0(m.range.min)}…${r0(m.range.max)}°` : ''} · wind ${m.wind != null ? Math.round(m.wind) : '–'} m/s`, { size: 16, weight: 450 });
@@ -529,7 +529,7 @@ export const artRiso = {
     for (const [x, y] of [[14, 14], [786, 14], [14, 466], [786, 466]]) {
       s += `<g stroke="${C.ink}" stroke-width="1"><line x1="${x - 7}" y1="${y}" x2="${x + 7}" y2="${y}"/><line x1="${x}" y1="${y - 7}" x2="${x}" y2="${y + 7}"/><circle cx="${x}" cy="${y}" r="4" fill="none"/></g>`;
     }
-    s += T(36, 458, `TAPIOLA · ${ctx.now}`, { size: 15, weight: 700, ls: 2.5 });
+    s += T(36, 458, `${(ctx.place?.name ?? 'Tapiola').toUpperCase()} · ${ctx.now}`, { size: 15, weight: 700, ls: 2.5 });
     return frame(s);
   },
 };

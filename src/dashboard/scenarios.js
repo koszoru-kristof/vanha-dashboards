@@ -22,6 +22,11 @@ const hourOf = (t) => new Date(t).getHours() + new Date(t).getMinutes() / 60;
  * A spec gives functions of `x`, hours from now (negative = past), and `t`,
  * the timestamp. sym uses FMI WeatherSymbol3 codes (see src/adapters/fmi.js).
  * price(hour, dayOffset) is c/kWh incl. VAT for that local hour.
+ *
+ * `temp` describes the next day or so; past 30 h it hands over to `season` —
+ * a daily cycle round the season's mean plus a slow weather wave — because a
+ * near-term trend run on for a week ends somewhere absurd (a storm's cooling
+ * would reach −26 °C by the next Sunday).
  */
 export const SCENARIOS = {
   storm: {
@@ -31,7 +36,9 @@ export const SCENARIOS = {
     temp: (x) => 9.5 - 0.08 * x + 0.8 * Math.sin(x / 5) - (x > 20 ? (x - 20) * 0.15 : 0),
     rh: () => 94,
     wind: (x) => 9 + 9 * gauss(x, 3, 4),
-    mm: (x) => (x > -1 && x < 7 ? 1.2 + 4.5 * gauss(x, 2.5, 1.8) : x >= 7 && x < 9 ? 0.4 : 0),
+    season: { mean: 7.5, amp: 1.8 },
+    mm: (x) => (x > -1 && x < 7 ? 1.2 + 4.5 * gauss(x, 2.5, 1.8) : x >= 7 && x < 9 ? 0.4
+      : x > 60 && x < 66 ? 0.8 : x > 110 && x < 118 ? 1.6 : 0),
     sym: (x, mm) => (mm > 3 && x > 1 && x < 3 ? 61 : mm >= 2 ? 33 : mm >= 0.4 ? 32 : mm > 0 ? 21 : x < 30 ? 3 : 2),
     price: (h, d) => (d ? 3 + 6 * gauss(h, 8, 2) + 5 * gauss(h, 18, 2) : 2.5 + 9 * gauss(h, 8, 1.6) + 26 * gauss(h, 18.5, 1.6)),
   },
@@ -42,7 +49,8 @@ export const SCENARIOS = {
     temp: (x) => -19 - 0.25 * Math.max(0, x) + 2.5 * Math.sin((x - 4) / 3.8) * 0.3 + (x > 30 ? (x - 30) * 0.12 : 0),
     rh: () => 78,
     wind: () => 2.5,
-    mm: (x) => (x > 40 && x < 52 ? 0.5 : 0),
+    season: { mean: -15, amp: 3, drift: 0.6 },
+    mm: (x) => (x > 40 && x < 52 ? 0.5 : x > 120 && x < 130 ? 0.8 : 0),
     sym: (x, mm) => (mm > 0 ? 51 : x > 26 && x < 40 ? 2 : 1),
     price: (h, d) => (d ? 16 + 18 * gauss(h, 9, 2.5) + 14 * gauss(h, 17, 2.5)
                        : 22 + 30 * gauss(h, 8.5, 2) + 36 * gauss(h, 17.5, 2.2) - 12 * gauss(h, 3, 1.5)),
@@ -54,8 +62,9 @@ export const SCENARIOS = {
     temp: (x) => { const hr = hourOf(Date.parse('2027-06-20T13:10') + x * HOUR); return 18 + 5.5 * Math.sin(((hr - 9) / 24) * 2 * Math.PI) + 0.4 * Math.sin(x); },
     rh: () => 48,
     wind: (x) => 8 - 3 * gauss(x, 12, 5),
-    mm: (x) => (x > 50 && x < 55 ? 1.5 : 0),
-    sym: (x, mm) => (mm > 0 ? 21 : x > 5 && x < 10 ? 2 : 1),
+    season: { mean: 18, amp: 5 },
+    mm: (x) => (x > 50 && x < 55 ? 1.5 : x > 100 && x < 103 ? 3 : 0),
+    sym: (x, mm) => (mm > 2 ? 61 : mm > 0 ? 21 : x > 5 && x < 10 ? 2 : 1),
     price: (h, d) => (d ? 1.5 + 5 * gauss(h, 19, 2) : -0.9 + 1.2 * gauss(h, 7, 1.5) + 4.5 * gauss(h, 20, 2) - 0.8 * gauss(h, 13, 2.5)),
   },
   sleet: {
@@ -65,8 +74,9 @@ export const SCENARIOS = {
     temp: (x) => 1.2 + 0.6 * Math.max(0, x) * (x < 7 ? 1 : 0) + (x >= 7 ? 4.2 - (x - 7) * 0.35 : 0),
     rh: () => 89,
     wind: () => 7,
-    mm: (x) => (x > -2 && x < 4 ? 0.9 + 0.6 * Math.sin(x * 2) : 0),
-    sym: (x, mm) => (mm > 0 ? (x < 2 ? 81 : 71) : x < 8 ? 3 : 2),
+    season: { mean: 3, amp: 4 },
+    mm: (x) => (x > -2 && x < 4 ? 0.9 + 0.6 * Math.sin(x * 2) : x > 70 && x < 80 ? 1 : x > 140 && x < 150 ? 0.6 : 0),
+    sym: (x, mm) => (mm > 0 ? (x < 2 ? 81 : x < 30 ? 71 : 31) : x < 8 ? 3 : 2),
     price: (h, d) => (d ? 5 + 7 * gauss(h, 8, 1.5) : 5.5 + 14 * gauss(h, 8, 1.3) + 7 * gauss(h, 18, 2)),
   },
   fog: {
@@ -76,16 +86,30 @@ export const SCENARIOS = {
     temp: (x) => 3.1 + 0.25 * Math.max(0, Math.min(x, 7)),
     rh: () => 99,
     wind: () => 0.8,
-    mm: () => 0,
-    sym: (x) => (x < 4 ? 91 : x < 12 ? 3 : 2),
+    season: { mean: 4, amp: 1.5, peak: 14 },
+    mm: (x) => (x > 90 && x < 100 ? 0.4 : 0),
+    sym: (x, mm) => (mm > 0 ? 31 : x < 4 ? 91 : x < 12 ? 3 : 2),
     price: (h) => 7.5 + 1.8 * Math.sin(h / 3) + 1.2 * gauss(h, 8, 1.5),
   },
 };
 
+/* The spec's temperature for the next day, handing over to its season after 30 h. */
+function temperature(spec) {
+  const { mean, amp, peak = 15, drift = 0 } = spec.season;
+  const h0 = hourOf(Date.parse(spec.at));
+  return (x) => {
+    if (x <= 30) return spec.temp(x);
+    const long = mean + drift * (x / 24) + amp * Math.cos(((h0 + x - peak) / 24) * 2 * Math.PI) + 1.6 * Math.sin(x / 29);
+    const u = Math.min(1, (x - 30) / 18);
+    return spec.temp(Math.min(x, 48)) * (1 - u) + long * u;
+  };
+}
+
 /** Build a ctx for `id` on top of `base` (rooms, sauna watts, indoor readings). */
 export function scenarioContext(id, base) {
-  const spec = SCENARIOS[id];
-  if (!spec) return base;
+  const raw = SCENARIOS[id];
+  if (!raw) return base;
+  const spec = { ...raw, temp: temperature(raw) };
   const now = Date.parse(spec.at);            // local time: no Z in the string
 
   const weather = createWeatherStore();
@@ -126,6 +150,6 @@ export function scenarioContext(id, base) {
     weather, forecast, prices,
     verdict: verdict(prices, now),
     alert: null,
-    scenario: { id, ...spec },
+    scenario: { id, ...raw },
   };
 }

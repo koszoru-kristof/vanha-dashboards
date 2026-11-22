@@ -1,0 +1,13 @@
+/*
+ * Poster studies (src/dashboard/posters/). Six flat inks, antialiased type,
+ * either orientation of the 7.3" Spectra 6 panel.
+ */
+.panel.pp {
+  font-family: "Jost Variable", Jost, Futura, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: normal;
+}
+.panel.pp.portrait { width: 480px; height: 800px; }
+.pp .pp-svg { position: absolute; left: 0; top: 0; }
+.pp .abs { position: absolute; }
+.pp .tnum { font-variant-numeric: tabular-nums; }
